@@ -1,0 +1,2458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ErrorMint: Card Market Frenzy</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg0:#04050c;--bg1:#080a12;--bg2:#0c0e1a;--bg3:#11141f;--bg4:#161a28;--bg5:#1c2032;
+  --border:#1a1e2e;--border-b:#262d42;--border-c:#323c58;
+  --text:#bcc8e4;--text-d:#485070;--text-b:#dde8ff;
+  --green:#00e87a;--green-d:#005a30;--green-g:#00ff8840;
+  --red:#ff3050;--red-d:#8c0020;--red-g:#ff305040;
+  --amber:#ffaa00;--amber-d:#7a4800;--amber-g:#ffaa0030;
+  --blue:#3a7fff;--blue-d:#152e8c;--blue-g:#3a7fff30;
+  --purple:#9030ff;--purple-d:#400f80;--purple-g:#9030ff30;
+  --cyan:#00c8f0;--teal:#00d4a8;--pink:#ff40a0;
+  --gold:#ffd700;--silver:#c0c8d8;
+  --common:#5a6080;--rare:#3a7fff;--epic:#9030ff;--legendary:#ffaa00;--mythic:#ff3050;
+  --fd:'Bebas Neue',sans-serif;--fm:'Share Tech Mono',monospace;--fu:'Rajdhani',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden}
+body{background:var(--bg0);color:var(--text);font-family:var(--fu);font-size:12px;display:flex;flex-direction:column;
+  background-image:radial-gradient(ellipse 60% 40% at 15% 60%,rgba(58,127,255,.04) 0%,transparent 100%),
+  radial-gradient(ellipse 50% 60% at 85% 20%,rgba(144,48,255,.04) 0%,transparent 100%);}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.04) 3px,rgba(0,0,0,.04) 4px);}
+
+/* ── SCROLLBARS ── */
+::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-track{background:var(--bg1)}
+::-webkit-scrollbar-thumb{background:var(--border-b);border-radius:2px}
+
+/* ── TOPBAR ── */
+#topbar{height:48px;background:var(--bg1);border-bottom:1px solid var(--border);padding:0 14px;
+  display:flex;align-items:center;gap:18px;flex-shrink:0;position:relative;z-index:10}
+#topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,#3a7fff60,#9030ff80,#3a7fff60,transparent)}
+.brand{font-family:var(--fd);font-size:24px;letter-spacing:3px;color:var(--text-b);flex-shrink:0;line-height:1}
+.brand b{color:var(--red)}
+.tb-sep{width:1px;height:26px;background:var(--border-b);flex-shrink:0}
+.tb-stat{display:flex;flex-direction:column;gap:1px}
+.tb-lbl{font-family:var(--fm);font-size:8px;color:var(--text-d);letter-spacing:1px;text-transform:uppercase}
+.tb-val{font-family:var(--fm);font-size:14px;font-weight:bold;line-height:1}
+.xp-wrap{flex:1;max-width:180px}
+.xp-lbl{font-family:var(--fm);font-size:8px;color:var(--text-d);letter-spacing:1px;margin-bottom:3px}
+.xp-outer{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;border:1px solid var(--border-b)}
+.xp-inner{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:3px;transition:width .6s}
+#notif-stack{position:fixed;top:56px;right:12px;z-index:2000;display:flex;flex-direction:column;gap:6px;width:290px}
+.notif{background:var(--bg2);border:1px solid var(--border-b);border-radius:5px;padding:10px 14px;
+  transform:translateX(320px);transition:transform .4s cubic-bezier(.2,1,.3,1);pointer-events:none;border-left:3px solid var(--amber)}
+.notif.show{transform:translateX(0)}
+.notif.bull{border-left-color:var(--green)}.notif.bear{border-left-color:var(--red)}.notif.special{border-left-color:var(--purple)}
+.n-type{font-family:var(--fm);font-size:8px;color:var(--text-d);letter-spacing:1px;margin-bottom:3px}
+.n-title{font-family:var(--fd);font-size:15px;letter-spacing:1px;color:var(--text-b);margin-bottom:3px}
+.n-desc{font-size:10px;color:var(--text-d);line-height:1.4}
+
+/* ── MAIN LAYOUT ── */
+#main{display:grid;grid-template-columns:260px 1fr 270px;flex:1;overflow:hidden;min-height:0}
+.panel{background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.ph{height:34px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;
+  justify-content:space-between;padding:0 10px;flex-shrink:0}
+.ph-title{font-family:var(--fd);font-size:13px;letter-spacing:1.5px;color:var(--text-b)}
+.ph-badge{font-family:var(--fm);font-size:8px;padding:2px 5px;background:var(--bg4);border:1px solid var(--border-b);
+  color:var(--text-d);border-radius:2px;letter-spacing:1px}
+
+/* ── MARKET FILTERS ── */
+.mf{display:flex;gap:3px;padding:5px 6px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;background:var(--bg2)}
+.fb{font-family:var(--fm);font-size:8px;padding:2px 5px;border:1px solid var(--border-b);border-radius:2px;
+  background:none;color:var(--text-d);cursor:pointer;letter-spacing:.5px;transition:all .12s;white-space:nowrap}
+.fb:hover{color:var(--text);border-color:var(--text-d)}.fb.act{color:var(--blue);border-color:var(--blue-d);background:var(--blue-g)}
+.fb.act-r{color:var(--red);border-color:var(--red-d);background:var(--red-g)}
+
+/* ── MARKET ROW ── */
+#mkt-list{flex:1;overflow-y:auto;padding:3px}
+.mkt-row{display:grid;grid-template-columns:6px 1fr 56px;gap:6px;align-items:center;padding:6px 7px;
+  border-radius:3px;cursor:pointer;border:1px solid transparent;margin-bottom:2px;transition:all .12s;position:relative;overflow:hidden}
+.mkt-row:hover{background:var(--bg3);border-color:var(--border-b)}
+.mkt-row.sel{background:var(--bg3);border-color:var(--border-b)}
+.mkt-row.watch{border-left:2px solid var(--amber)!important}
+.mkt-row.alerted{border-left:2px solid var(--cyan)!important}
+@keyframes fG{0%,100%{background:inherit}50%{background:rgba(0,232,122,.1)}}
+@keyframes fR{0%,100%{background:inherit}50%{background:rgba(255,48,80,.1)}}
+.fl-g{animation:fG .4s ease}.fl-r{animation:fR .4s ease}
+.rd{width:5px;height:5px;border-radius:50%;flex-shrink:0;align-self:flex-start;margin-top:4px}
+.rn{min-width:0}.rn-name{font-size:11px;font-weight:600;color:var(--text-b);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rn-meta{font-family:var(--fm);font-size:8px;color:var(--text-d);display:flex;gap:5px;margin-top:1px}
+.rp-b{text-align:right;flex-shrink:0}
+.rp{font-family:var(--fm);font-size:12px;font-weight:bold;color:var(--text-b)}
+.rc{font-family:var(--fm);font-size:8px;font-weight:bold}
+.rc.up{color:var(--green)}.rc.dn{color:var(--red)}
+.mt{font-family:var(--fm);font-size:7px;padding:1px 3px;background:rgba(255,170,0,.12);border:1px solid rgba(255,170,0,.3);
+  color:var(--amber);border-radius:1px;margin-left:3px}
+.wt{font-family:var(--fm);font-size:7px;padding:1px 3px;background:rgba(0,200,240,.1);border:1px solid rgba(0,200,240,.3);
+  color:var(--cyan);border-radius:1px;margin-left:3px}
+
+/* ── CENTER PANEL ── */
+#ctr{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border)}
+#card-detail{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;gap:14px;flex-shrink:0;min-height:148px;background:var(--bg2)}
+#no-sel{flex:1;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:10px;color:var(--text-d);letter-spacing:1px}
+#sel-detail{display:none;gap:14px;align-items:flex-start;width:100%}
+.ca{width:80px;height:110px;border-radius:6px;flex-shrink:0;border:2px solid var(--border-b);overflow:hidden;position:relative;cursor:pointer}
+.ca canvas{width:100%;height:100%;display:block}
+.ca-glow{position:absolute;inset:-4px;border-radius:9px;opacity:.4;filter:blur(8px);pointer-events:none;z-index:-1}
+.ci{flex:1;min-width:0}
+.cn{font-family:var(--fd);font-size:20px;letter-spacing:1px;color:var(--text-b);line-height:1;margin-bottom:3px}
+.cr{display:inline-block;font-family:var(--fm);font-size:8px;padding:2px 6px;border-radius:2px;letter-spacing:1px;margin-bottom:6px}
+.csg{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px}
+.cs{display:flex;justify-content:space-between;align-items:center}
+.csl{font-size:9px;color:var(--text-d)}.csv{font-family:var(--fm);font-size:10px;color:var(--text)}
+.pd{flex-shrink:0;width:136px}
+.pdc-lbl{font-family:var(--fm);font-size:8px;color:var(--text-d);letter-spacing:1px;margin-bottom:1px}
+.pdc-val{font-family:var(--fd);font-size:32px;letter-spacing:1px;color:var(--text-b);line-height:1}
+.pcc{font-family:var(--fm);font-size:12px;font-weight:bold;margin-bottom:6px}
+.pcc.up{color:var(--green)}.pcc.dn{color:var(--red)}
+.qty-ctrl{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.qb{width:18px;height:18px;background:var(--bg4);border:1px solid var(--border-b);border-radius:2px;color:var(--text);
+  cursor:pointer;font-family:var(--fm);font-size:11px;display:flex;align-items:center;justify-content:center;transition:background .1s}
+.qb:hover{background:var(--bg3)}.qd{font-family:var(--fm);font-size:12px;color:var(--text-b);min-width:18px;text-align:center}
+.bsb{display:flex;gap:3px}
+.btn{padding:7px 8px;border:1px solid;border-radius:3px;cursor:pointer;font-family:var(--fd);font-size:13px;
+  letter-spacing:1px;transition:all .12s;text-align:center;flex:1}
+.btn-buy{background:rgba(0,232,122,.1);border-color:var(--green-d);color:var(--green)}
+.btn-buy:hover{background:rgba(0,232,122,.2);border-color:var(--green)}
+.btn-sell{background:rgba(255,48,80,.1);border-color:var(--red-d);color:var(--red)}
+.btn-sell:hover{background:rgba(255,48,80,.2);border-color:var(--red)}
+.btn-watch{background:rgba(0,200,240,.06);border-color:rgba(0,200,240,.3);color:var(--cyan);font-size:11px;padding:7px 5px}
+.btn-watch:hover{background:rgba(0,200,240,.12)}
+.btn-dis{opacity:.3;cursor:not-allowed!important;pointer-events:none}
+.btn-p{background:rgba(144,48,255,.1);border-color:var(--purple-d);color:var(--purple)}
+.btn-p:hover{background:rgba(144,48,255,.2)}
+.btn-alert{background:rgba(0,200,240,.07);border-color:rgba(0,200,240,.25);color:var(--cyan);font-size:10px;padding:5px 7px;width:100%;margin-top:3px}
+.btn-alert:hover{background:rgba(0,200,240,.15)}
+
+/* ── CHART ── */
+#chart-area{flex:1;padding:10px 14px;display:flex;flex-direction:column;min-height:0}
+.cha-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-shrink:0}
+.cha-ttl{font-family:var(--fm);font-size:9px;color:var(--text-d);letter-spacing:1px}
+.ch-inds{display:flex;gap:5px;flex-wrap:wrap}
+.ci2{font-family:var(--fm);font-size:8px;padding:1px 5px;border-radius:2px;border:1px solid}
+.ci-g{color:var(--green);border-color:var(--green-d);background:var(--green-g)}
+.ci-r{color:var(--red);border-color:var(--red-d);background:var(--red-g)}
+.ci-a{color:var(--amber);border-color:var(--amber-d);background:var(--amber-g)}
+.ci-p{color:var(--purple);border-color:var(--purple-d);background:var(--purple-g)}
+#price-chart{flex:1;position:relative;min-height:0}
+#chart-canvas{width:100%;height:100%;display:block}
+
+/* ── TICKER ── */
+#ticker{height:28px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;
+  overflow:hidden;flex-shrink:0;padding:0 10px;gap:10px}
+.t-lbl{font-family:var(--fm);font-size:8px;color:var(--amber);letter-spacing:1px;flex-shrink:0;padding-right:8px;border-right:1px solid var(--border-b)}
+.t-txt{font-family:var(--fm);font-size:9px;color:var(--text-d);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-ev{color:var(--amber);font-weight:bold}
+
+/* ── RIGHT PANEL TABS ── */
+.tab-bar{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2);overflow-x:auto}
+.tb2{flex:1;padding:7px 4px;text-align:center;font-family:var(--fm);font-size:8px;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--text-d);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;white-space:nowrap;min-width:0}
+.tb2:hover{color:var(--text)}.tb2.act{color:var(--blue);border-bottom-color:var(--blue)}
+.tc{display:none;flex:1;overflow-y:auto;padding:6px;min-height:0}
+.tc.act{display:flex;flex-direction:column;gap:4px}
+
+/* ── INVENTORY ── */
+.inv-i{display:flex;justify-content:space-between;align-items:center;padding:7px;border-radius:3px;
+  border:1px solid var(--border);margin-bottom:2px;background:var(--bg2);cursor:pointer;transition:border-color .12s}
+.inv-i:hover{border-color:var(--border-b)}
+.inv-name{font-size:11px;font-weight:600;color:var(--text-b);margin-bottom:1px}
+.inv-meta{font-family:var(--fm);font-size:8px;color:var(--text-d)}
+.inv-pnl{text-align:right;font-family:var(--fm);font-size:10px;font-weight:bold}
+.pf{color:var(--green)}.lss{color:var(--red)}
+
+/* ── PACK CARDS ── */
+.pack-c{background:var(--bg2);border:1px solid var(--border-b);border-radius:5px;padding:10px;cursor:pointer;
+  transition:all .15s;position:relative;overflow:hidden;margin-bottom:6px}
+.pack-c:hover{border-color:var(--border-c);transform:translateY(-1px)}
+.pack-c::before{content:'';position:absolute;top:-60%;left:-60%;width:220%;height:220%;
+  background:radial-gradient(circle at center,rgba(255,255,255,.015) 0%,transparent 60%);opacity:0;transition:opacity .3s}
+.pack-c:hover::before{opacity:1}
+.pn{font-family:var(--fd);font-size:15px;letter-spacing:1px;margin-bottom:3px}
+.pd2{font-size:10px;color:var(--text-d);margin-bottom:6px;line-height:1.4}
+.pp{font-family:var(--fm);font-size:14px;font-weight:bold;color:var(--amber)}
+.pev{font-family:var(--fm);font-size:8px;color:var(--text-d);margin-top:2px}
+.pack-rates{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.pr-tag{font-family:var(--fm);font-size:7px;padding:1px 4px;border-radius:2px;border:1px solid}
+
+/* ── TOOLS / ACHIEVEMENTS ── */
+.tool-i{padding:7px;border:1px solid var(--border);border-radius:3px;background:var(--bg2);margin-bottom:4px}
+.tool-n{font-size:11px;font-weight:600;color:var(--text-b);margin-bottom:2px}
+.tool-d{font-size:9px;color:var(--text-d);line-height:1.4}
+.tool-u{font-family:var(--fm);font-size:8px;color:var(--amber);margin-top:3px}
+.tool-act{border-color:var(--green-d)}.tool-act .tool-n{color:var(--green)}
+.ach-i{padding:7px;border:1px solid var(--border);border-radius:3px;background:var(--bg2);margin-bottom:4px;position:relative;overflow:hidden}
+.ach-i.done{border-color:var(--amber-d)}
+.ach-i.done::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,170,0,.04) 0%,transparent 60%)}
+.ach-n{font-size:11px;font-weight:600;color:var(--text-b);margin-bottom:2px}
+.ach-d{font-size:9px;color:var(--text-d)}
+.ach-prog{height:3px;background:var(--bg4);border-radius:2px;margin-top:5px;overflow:hidden}
+.ach-prog-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--amber-d));transition:width .5s}
+.ach-done{font-family:var(--fm);font-size:8px;color:var(--amber)}
+
+/* ── TRADE HISTORY ── */
+.th-i{padding:6px 7px;border:1px solid var(--border);border-radius:3px;background:var(--bg2);margin-bottom:2px;border-left:2px solid}
+.th-buy{border-left-color:var(--green-d)}.th-sell{border-left-color:var(--red-d)}
+.th-name{font-size:10px;font-weight:600;color:var(--text-b)}
+.th-meta{font-family:var(--fm);font-size:8px;color:var(--text-d);display:flex;justify-content:space-between;margin-top:1px}
+.th-pnl{font-family:var(--fm);font-size:9px;font-weight:bold}
+
+/* ── ALERTS ── */
+.al-i{padding:6px 8px;border-radius:3px;border-left:3px solid;margin-bottom:3px;font-size:10px;background:var(--bg2);animation:sI .3s ease}
+@keyframes sI{from{opacity:0;transform:translateX(-6px)}}
+.al-buy{border-left-color:var(--green)}.al-sell{border-left-color:var(--red)}
+.al-ev{border-left-color:var(--amber)}.al-mp{border-left-color:var(--purple)}.al-ach{border-left-color:var(--gold)}
+.al-time{font-family:var(--fm);font-size:7px;color:var(--text-d);margin-top:2px}
+
+/* ── PRICE ALERTS SECTION ── */
+.pal-i{padding:7px;border:1px solid var(--border);border-radius:3px;background:var(--bg2);margin-bottom:3px;
+  display:flex;justify-content:space-between;align-items:center}
+.pal-info{font-size:10px;color:var(--text-b)}
+.pal-price{font-family:var(--fm);font-size:9px;color:var(--cyan)}
+.pal-del{background:none;border:1px solid var(--red-d);border-radius:2px;color:var(--red);cursor:pointer;
+  font-family:var(--fm);font-size:8px;padding:2px 5px;transition:background .1s}
+.pal-del:hover{background:var(--red-g)}
+.pal-set{display:flex;gap:4px;margin-bottom:6px}
+.pal-inp{background:var(--bg4);border:1px solid var(--border-b);border-radius:2px;color:var(--text-b);
+  font-family:var(--fm);font-size:10px;padding:4px 6px;flex:1;min-width:0}
+.pal-inp:focus{outline:none;border-color:var(--cyan)}
+
+/* ── MARKET SCANNER ── */
+.scan-row{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:5px 7px;
+  border:1px solid var(--border);border-radius:3px;background:var(--bg2);margin-bottom:2px;cursor:pointer;transition:border-color .12s}
+.scan-row:hover{border-color:var(--border-b)}
+.scan-name{font-size:10px;font-weight:600;color:var(--text-b)}
+.scan-meta{font-family:var(--fm);font-size:8px;color:var(--text-d);margin-top:1px}
+.scan-val{font-family:var(--fm);font-size:10px;text-align:right}
+.scan-sort{display:flex;gap:4px;padding:5px 6px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2)}
+
+/* ── PORTFOLIO CHART ── */
+#port-chart{height:100px;background:var(--bg2);border:1px solid var(--border);border-radius:3px;margin-bottom:6px;flex-shrink:0}
+
+/* ── SEALED BOXES ── */
+.sb-i{background:var(--bg2);border:1px solid var(--border-b);border-radius:5px;padding:10px;margin-bottom:6px;position:relative}
+.sb-name{font-family:var(--fd);font-size:14px;letter-spacing:1px;margin-bottom:2px}
+.sb-meta{font-family:var(--fm);font-size:8px;color:var(--text-d);margin-bottom:6px}
+.sb-price{font-family:var(--fm);font-size:13px;color:var(--amber);font-weight:bold}
+.sb-trend{font-family:var(--fm);font-size:8px;margin-left:8px}
+.sb-actions{display:flex;gap:4px;margin-top:6px}
+.sb-decay-bar{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-top:5px;border:1px solid var(--border)}
+.sb-decay-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--amber));transition:width 1s}
+
+/* ── GRADE SYSTEM ── */
+.grade-i{padding:7px;border:1px solid var(--border);border-radius:3px;background:var(--bg2);margin-bottom:4px}
+.grade-n{font-size:10px;font-weight:600;color:var(--text-b);margin-bottom:4px;display:flex;justify-content:space-between}
+.grade-bar-wrap{margin-bottom:2px}
+.grade-lbl{font-family:var(--fm);font-size:7px;color:var(--text-d);margin-bottom:2px}
+.grade-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.grade-fill{height:100%;border-radius:2px;transition:width .5s}
+
+/* ── MODAL ── */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(6px)}
+.mo.hid{display:none}
+.md{background:var(--bg1);border:1px solid var(--border-b);border-radius:8px;padding:20px;width:520px;max-width:92vw;position:relative;max-height:88vh;overflow-y:auto}
+.md-ttl{font-family:var(--fd);font-size:22px;letter-spacing:2px;color:var(--text-b);margin-bottom:14px;text-align:center}
+.md-cls{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--text-d);font-size:16px;cursor:pointer;
+  font-family:var(--fm);padding:3px 6px;border-radius:2px;transition:all .1s}
+.md-cls:hover{color:var(--text-b);background:var(--bg4)}
+#pack-reveal{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:14px 0}
+.rv-card{width:84px;height:115px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding:0 0 6px 0;border:2px solid;position:relative;overflow:hidden;animation:cRv .5s ease backwards;cursor:pointer}
+@keyframes cRv{from{opacity:0;transform:scale(.7) rotateY(90deg)}to{opacity:1;transform:scale(1) rotateY(0)}}
+.rv-canvas{position:absolute;inset:0;width:100%;height:100%}
+.rv-name{position:relative;z-index:1;font-family:var(--fd);font-size:11px;letter-spacing:.5px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.8);line-height:1.1;margin-top:auto}
+.rv-price{position:relative;z-index:1;font-family:var(--fm);font-size:10px;font-weight:bold;color:var(--amber);text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.rv-mp-tag{position:absolute;top:4px;right:4px;font-size:6px;padding:1px 2px;background:rgba(255,170,0,.2);border:1px solid rgba(255,170,0,.4);color:var(--amber);border-radius:1px;z-index:2}
+.rv-grade{position:absolute;top:4px;left:4px;font-family:var(--fm);font-size:7px;padding:1px 3px;border-radius:1px;z-index:2}
+
+/* ── BOTTOM BAR ── */
+#btm{height:34px;background:var(--bg1);border-top:1px solid var(--border);display:flex;align-items:center;
+  padding:0 14px;gap:16px;flex-shrink:0}
+.bs{font-family:var(--fm);font-size:9px;color:var(--text-d)}
+.bs span{color:var(--text)}.bs .g{color:var(--green)}.bs .r{color:var(--red)}.bs .a{color:var(--amber)}
+.bs .p{color:var(--purple)}
+
+/* ── RARITY HELPERS ── */
+.rc-common{color:var(--common)}.rc-rare{color:var(--rare)}.rc-epic{color:var(--epic)}
+.rc-legendary{color:var(--legendary)}.rc-mythic{color:var(--mythic)}
+.dot-c{background:var(--common)}.dot-r{background:var(--rare)}.dot-e{background:var(--epic)}
+.dot-l{background:var(--legendary)}.dot-m{background:var(--mythic)}
+.bg-c{background:rgba(90,96,128,.1);border-color:rgba(90,96,128,.3)!important}
+.bg-r{background:rgba(58,127,255,.1);border-color:rgba(58,127,255,.3)!important}
+.bg-e{background:rgba(144,48,255,.12);border-color:rgba(144,48,255,.35)!important}
+.bg-l{background:rgba(255,170,0,.1);border-color:rgba(255,170,0,.3)!important}
+.bg-m{background:rgba(255,48,80,.12);border-color:rgba(255,48,80,.35)!important}
+
+.emp{text-align:center;color:var(--text-d);font-family:var(--fm);font-size:9px;padding:20px;line-height:1.8}
+
+/* ── SORT HEADER ── */
+.mkt-sort{display:flex;gap:3px;padding:4px 6px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg3)}
+.sb2{font-family:var(--fm);font-size:7px;padding:2px 5px;border:1px solid var(--border-b);border-radius:2px;
+  background:none;color:var(--text-d);cursor:pointer;transition:all .12s;letter-spacing:.5px}
+.sb2:hover{color:var(--text)}.sb2.act{color:var(--amber);border-color:var(--amber-d)}
+
+/* ── GRADE MODAL ── */
+.grade-result{text-align:center;padding:14px}
+.grade-score{font-family:var(--fd);font-size:72px;letter-spacing:2px;line-height:1}
+.grade-label{font-family:var(--fm);font-size:11px;letter-spacing:2px;color:var(--text-d);margin-bottom:10px}
+.grade-mult{font-family:var(--fm);font-size:14px;color:var(--amber);font-weight:bold}
+
+/* ── PORTFOLIO STATS ── */
+.pstat{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)}
+.pstat:last-child{border-bottom:none}
+.pstat-l{font-size:10px;color:var(--text-d)}.pstat-r{font-family:var(--fm);font-size:10px;font-weight:bold}
+
+/* ── ALERT DOT ── */
+.tab-dot{display:inline-block;width:5px;height:5px;background:var(--red);border-radius:50%;margin-left:3px;vertical-align:middle}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="brand">Error<b>Mint</b></div>
+  <div class="tb-sep"></div>
+  <div class="tb-stat"><div class="tb-lbl">CASH</div><div class="tb-val" id="tb-money" style="color:var(--green)">$10,000</div></div>
+  <div class="tb-stat"><div class="tb-lbl">PORTFOLIO</div><div class="tb-val" id="tb-port" style="color:var(--cyan)">$0</div></div>
+  <div class="tb-stat"><div class="tb-lbl">NET WORTH</div><div class="tb-val" id="tb-net" style="color:var(--text-b)">$10,000</div></div>
+  <div class="tb-stat"><div class="tb-lbl">SESSION P&L</div><div class="tb-val" id="tb-pnl">+$0</div></div>
+  <div class="tb-sep"></div>
+  <div class="tb-stat"><div class="tb-lbl">RANK</div><div class="tb-val" id="tb-rank" style="color:var(--amber)">ROOKIE</div></div>
+  <div class="xp-wrap">
+    <div class="xp-lbl">XP <span id="xp-txt">0/500</span></div>
+    <div class="xp-outer"><div class="xp-inner" id="xp-bar" style="width:0%"></div></div>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-stat"><div class="tb-lbl">MARKET TICK</div><div class="tb-val" id="tb-tick" style="color:var(--text-d)">0</div></div>
+  <div class="tb-stat"><div class="tb-lbl">ACTIVE EVENTS</div><div class="tb-val" id="tb-evs" style="color:var(--amber)">NONE</div></div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- LEFT: MARKET -->
+  <div class="panel">
+    <div class="ph"><span class="ph-title">LIVE MARKET</span><span class="ph-badge" id="mkt-status">OPEN</span></div>
+    <div class="mf" id="mkt-filters">
+      <button class="fb act" onclick="setFilter('all')">ALL</button>
+      <button class="fb" onclick="setFilter('common')">CMN</button>
+      <button class="fb" onclick="setFilter('rare')">RARE</button>
+      <button class="fb" onclick="setFilter('epic')">EPIC</button>
+      <button class="fb" onclick="setFilter('legendary')">LGND</button>
+      <button class="fb" onclick="setFilter('mythic')">MYTH</button>
+      <button class="fb" onclick="setFilter('misprint')">⚠ ERR</button>
+      <button class="fb" onclick="setFilter('watchlist')">★ WATCH</button>
+      <button class="fb act-r" onclick="setFilter('gainers')" style="color:var(--green);border-color:var(--green-d)">GAINERS</button>
+      <button class="fb act-r" onclick="setFilter('losers')" style="color:var(--red);border-color:var(--red-d)">LOSERS</button>
+    </div>
+    <div class="mkt-sort">
+      <span style="font-family:var(--fm);font-size:7px;color:var(--text-d);margin-right:4px">SORT:</span>
+      <button class="sb2 act" onclick="setSort('change')">% CHG</button>
+      <button class="sb2" onclick="setSort('price')">PRICE</button>
+      <button class="sb2" onclick="setSort('name')">NAME</button>
+      <button class="sb2" onclick="setSort('rarity')">RARITY</button>
+      <button class="sb2" onclick="setSort('volume')">VOLUME</button>
+    </div>
+    <div id="mkt-list"></div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="ctr">
+    <div id="card-detail">
+      <div id="no-sel">SELECT A CARD TO VIEW DETAILS</div>
+      <div id="sel-detail">
+        <div class="ca" id="ca-wrap" title="Click to grade this card">
+          <canvas id="ca-canvas" width="80" height="110"></canvas>
+          <div class="ca-glow" id="ca-glow"></div>
+        </div>
+        <div class="ci">
+          <div class="cn" id="d-name">-</div>
+          <div class="cr" id="d-rarity">-</div>
+          <div id="d-misprint-row" style="display:none;margin-bottom:5px">
+            <span style="font-family:var(--fm);font-size:8px;padding:2px 5px;background:rgba(255,170,0,.1);border:1px solid rgba(255,170,0,.3);color:var(--amber);border-radius:2px" id="d-mp-lbl">-</span>
+            <span style="font-family:var(--fm);font-size:7px;color:var(--text-d);margin-left:5px" id="d-mp-disc">-</span>
+          </div>
+          <div class="csg" id="d-stats"></div>
+        </div>
+        <div class="pd">
+          <div class="pdc-lbl">CURRENT PRICE</div>
+          <div class="pdc-val" id="d-price">$0</div>
+          <div class="pcc" id="d-chg">+0.00%</div>
+          <div class="qty-ctrl">
+            <button class="qb" onclick="adjQty(-1)">-</button>
+            <div class="qd" id="t-qty">1</div>
+            <button class="qb" onclick="adjQty(1)">+</button>
+            <button class="qb" onclick="adjQty(-G.qty+1)" style="font-size:8px;width:26px">ALL</button>
+          </div>
+          <div class="bsb">
+            <button class="btn btn-buy" id="btn-buy" onclick="buyCard()">BUY</button>
+            <button class="btn btn-sell btn-dis" id="btn-sell" onclick="sellCard()">SELL</button>
+            <button class="btn btn-watch" id="btn-watch" onclick="toggleWatch()" title="Watchlist">★</button>
+          </div>
+          <button class="btn btn-alert" onclick="openAlertModal()" id="btn-palert">SET PRICE ALERT</button>
+          <button class="btn" style="width:100%;margin-top:3px;background:rgba(144,48,255,.07);border-color:rgba(144,48,255,.25);color:var(--purple);font-size:10px;padding:5px" onclick="gradeCard()" id="btn-grade">GRADE THIS CARD ($50)</button>
+        </div>
+      </div>
+    </div>
+    <div id="chart-area">
+      <div class="cha-hdr">
+        <span class="cha-ttl" id="cha-lbl">SELECT A CARD</span>
+        <div class="ch-inds" id="ch-inds"></div>
+      </div>
+      <div id="price-chart"><canvas id="chart-canvas"></canvas></div>
+    </div>
+    <div id="ticker">
+      <span class="t-lbl">FEED</span>
+      <span class="t-txt" id="ticker-txt">Initializing ErrorMint market engine…</span>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel" style="border-right:none">
+    <div class="tab-bar">
+      <div class="tb2 act" onclick="swTab('portfolio')">PORTFOLIO</div>
+      <div class="tb2" onclick="swTab('packs')">PACKS</div>
+      <div class="tb2" onclick="swTab('sealed')">SEALED</div>
+      <div class="tb2" onclick="swTab('scanner')">SCANNER</div>
+      <div class="tb2" onclick="swTab('tools')">TOOLS</div>
+      <div class="tb2" onclick="swTab('achievements')">ACHIEVE</div>
+      <div class="tb2" onclick="swTab('history')">HISTORY</div>
+      <div class="tb2" onclick="swTab('alerts')">ALERTS<span class="tab-dot" id="alert-dot" style="display:none"></span></div>
+    </div>
+
+    <div class="tc act" id="tc-portfolio">
+      <canvas id="port-chart" width="258" height="100"></canvas>
+      <div id="port-stats"></div>
+      <div id="inv-list"><div class="emp">No cards in portfolio.</div></div>
+    </div>
+    <div class="tc" id="tc-packs"><div id="packs-list"></div></div>
+    <div class="tc" id="tc-sealed"><div id="sealed-list"></div></div>
+    <div class="tc" id="tc-scanner">
+      <div class="scan-sort">
+        <span style="font-family:var(--fm);font-size:7px;color:var(--text-d);margin-right:4px">SCAN:</span>
+        <button class="sb2 act" onclick="setScan('movers')">TOP MOVERS</button>
+        <button class="sb2" onclick="setScan('bubble')">BUBBLE RISK</button>
+        <button class="sb2" onclick="setScan('misprint')">MISPRINTS</button>
+        <button class="sb2" onclick="setScan('cheap')">UNDERVALUED</button>
+      </div>
+      <div id="scanner-list" style="flex:1;overflow-y:auto;padding:4px"></div>
+    </div>
+    <div class="tc" id="tc-tools"><div id="tools-list"></div></div>
+    <div class="tc" id="tc-achievements"><div id="ach-list"></div></div>
+    <div class="tc" id="tc-history"><div id="hist-list"><div class="emp">No trades yet.</div></div></div>
+    <div class="tc" id="tc-alerts">
+      <div id="pal-section">
+        <div style="font-family:var(--fm);font-size:8px;color:var(--text-d);letter-spacing:1px;margin-bottom:5px;padding:4px 0;border-bottom:1px solid var(--border)">PRICE ALERTS</div>
+        <div id="pal-list"><div class="emp" style="padding:8px">No price alerts set.</div></div>
+      </div>
+      <div style="font-family:var(--fm);font-size:8px;color:var(--text-d);letter-spacing:1px;margin:6px 0 4px;padding:4px 0;border-bottom:1px solid var(--border)">EVENT LOG</div>
+      <div id="alerts-log"><div class="emp">No events yet.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div id="btm">
+  <div class="bs">TRADES: <span id="st-trades">0</span></div>
+  <div class="bs">WIN RATE: <span class="g" id="st-wr">—</span></div>
+  <div class="bs">BEST FLIP: <span class="a" id="st-best">$0</span></div>
+  <div class="bs">WORST: <span class="r" id="st-worst">$0</span></div>
+  <div class="bs">PACKS: <span id="st-packs">0</span></div>
+  <div class="bs">GRADED: <span class="p" id="st-graded">0</span></div>
+  <div class="bs" style="margin-left:auto">WATCHLIST: <span class="a" id="st-watch">0</span></div>
+</div>
+
+<!-- NOTIF STACK -->
+<div id="notif-stack"></div>
+
+<!-- PACK MODAL -->
+<div class="mo hid" id="pack-modal">
+  <div class="md">
+    <button class="md-cls" onclick="closePM()">✕</button>
+    <div class="md-ttl" id="pm-title">PACK OPENING</div>
+    <div id="pack-reveal"></div>
+    <div style="text-align:center;margin-top:10px">
+      <button class="btn btn-p" style="display:inline-block;width:auto;padding:8px 24px;font-size:14px" onclick="closePM()">ADD TO COLLECTION</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRICE ALERT MODAL -->
+<div class="mo hid" id="pal-modal">
+  <div class="md" style="width:380px">
+    <button class="md-cls" onclick="closePAM()">✕</button>
+    <div class="md-ttl" style="font-size:18px">SET PRICE ALERT</div>
+    <div style="font-size:11px;color:var(--text-d);text-align:center;margin-bottom:14px" id="pal-card-name">—</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <div style="font-family:var(--fm);font-size:9px;color:var(--text-d);margin-bottom:5px">ALERT ABOVE (target buy-out price)</div>
+        <div class="pal-set"><input class="pal-inp" id="pal-above-inp" type="number" placeholder="e.g. 500"><button class="btn btn-buy" style="padding:4px 10px;font-size:12px;flex:0" onclick="addPriceAlert('above')">+ SET</button></div>
+      </div>
+      <div>
+        <div style="font-family:var(--fm);font-size:9px;color:var(--text-d);margin-bottom:5px">ALERT BELOW (stop-loss trigger)</div>
+        <div class="pal-set"><input class="pal-inp" id="pal-below-inp" type="number" placeholder="e.g. 100"><button class="btn btn-sell" style="padding:4px 10px;font-size:12px;flex:0" onclick="addPriceAlert('below')">+ SET</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GRADE MODAL -->
+<div class="mo hid" id="grade-modal">
+  <div class="md" style="width:380px">
+    <button class="md-cls" onclick="document.getElementById('grade-modal').classList.add('hid')">✕</button>
+    <div class="md-ttl" style="font-size:18px">CARD GRADING</div>
+    <div id="grade-result"></div>
+  </div>
+</div>
+
+<script>
+// ╔══════════════════════════════════════════════════════════════╗
+// ║           ERRORMINT v2 — FULL ENGINE                         ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+// ────────────────────────────────────────
+//  CARD ART RENDERER
+// ────────────────────────────────────────
+const ArtRenderer = {
+  draw(ctx, card, w, h) {
+    const s = card.artStyle;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = card.artBg;
+    ctx.fillRect(0, 0, w, h);
+    const fns = {
+      inferno: this.inferno, void_eye: this.voidEye, crystalline: this.crystalline,
+      storm: this.storm, ancient: this.ancient, circuit: this.circuit,
+      organic: this.organic, cosmic: this.cosmic, shadow: this.shadow,
+      radiant: this.radiant, serpent: this.serpent, fractal: this.fractal,
+      glacier: this.glacier, plague: this.plague, rune: this.rune,
+      prism: this.prism, specter: this.specter, geo: this.geo,
+      thorn: this.thorn, wave: this.wave, ember: this.ember,
+      null_void: this.nullVoid, titan: this.titan, fae: this.fae,
+    };
+    if (fns[s]) fns[s].call(this, ctx, card, w, h);
+    else this.geo.call(this, ctx, card, w, h);
+    // Rarity overlay
+    this.rarityOverlay(ctx, card, w, h);
+  },
+  rarityOverlay(ctx, card, w, h) {
+    if (card.rarity === 'legendary' || card.rarity === 'mythic') {
+      // Holographic shimmer
+      const g = ctx.createLinearGradient(0, 0, w, h);
+      const c = card.rarity === 'mythic' ? '#ff305040' : '#ffaa0025';
+      g.addColorStop(0, 'transparent'); g.addColorStop(.4, c); g.addColorStop(.6, 'transparent');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+      // Corner accents
+      this.cornerGems(ctx, card, w, h);
+    }
+    if (card.rarity === 'epic') {
+      const g = ctx.createLinearGradient(0, 0, w, h);
+      g.addColorStop(0, 'transparent'); g.addColorStop(.5, '#9030ff18'); g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+    }
+  },
+  cornerGems(ctx, card, w, h) {
+    const c = card.rarity === 'mythic' ? '#ff3050' : '#ffaa00';
+    [[4,4],[w-4,4],[4,h-4],[w-4,h-4]].forEach(([x,y]) => {
+      ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI*2);
+      ctx.fillStyle = c; ctx.fill();
+    });
+  },
+  // ── ART STYLES ──
+  inferno(ctx, card, w, h) {
+    const cx = w/2, cy = h*0.55;
+    for (let i = 0; i < 12; i++) {
+      const ang = (i/12)*Math.PI*2, r = 14 + i*2.5;
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, card.artFg+'ff'); g.addColorStop(1, card.artFg+'00');
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+      ctx.fillStyle = g; ctx.fill();
+    }
+    // Flame spikes
+    for (let i = 0; i < 8; i++) {
+      const ang = (i/8)*Math.PI*2 - Math.PI/2;
+      const x1 = cx + Math.cos(ang)*8, y1 = cy + Math.sin(ang)*8;
+      const x2 = cx + Math.cos(ang)*28, y2 = cy + Math.sin(ang)*28;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.quadraticCurveTo(x1, y1, x2, y2);
+      ctx.strokeStyle = card.artFg + 'aa'; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+    // Core
+    const cg = ctx.createRadialGradient(cx, cy, 0, cx, cy, 10);
+    cg.addColorStop(0, '#ffffff'); cg.addColorStop(.4, card.artFg); cg.addColorStop(1, 'transparent');
+    ctx.beginPath(); ctx.arc(cx, cy, 10, 0, Math.PI*2); ctx.fillStyle = cg; ctx.fill();
+  },
+  voidEye(ctx, card, w, h) {
+    const cx = w/2, cy = h*0.5;
+    // Outer rings
+    for (let i = 5; i > 0; i--) {
+      ctx.beginPath(); ctx.arc(cx, cy, i*7, 0, Math.PI*2);
+      ctx.strokeStyle = card.artFg + Math.floor(40 + i*25).toString(16).padStart(2,'0');
+      ctx.lineWidth = 1; ctx.stroke();
+    }
+    // Eye shape
+    ctx.beginPath();
+    ctx.moveTo(cx - 20, cy);
+    ctx.bezierCurveTo(cx - 10, cy - 14, cx + 10, cy - 14, cx + 20, cy);
+    ctx.bezierCurveTo(cx + 10, cy + 14, cx - 10, cy + 14, cx - 20, cy);
+    ctx.fillStyle = card.artFg + '30'; ctx.fill();
+    ctx.strokeStyle = card.artFg; ctx.lineWidth = 1.5; ctx.stroke();
+    // Pupil
+    const pg = ctx.createRadialGradient(cx, cy, 0, cx, cy, 8);
+    pg.addColorStop(0, '#000000'); pg.addColorStop(.7, card.artFg); pg.addColorStop(1, card.artFg+'00');
+    ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI*2); ctx.fillStyle = pg; ctx.fill();
+    // Radial lines from eye
+    for (let i = 0; i < 16; i++) {
+      const ang = (i/16)*Math.PI*2;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(ang)*9, cy + Math.sin(ang)*9);
+      ctx.lineTo(cx + Math.cos(ang)*32, cy + Math.sin(ang)*32);
+      ctx.strokeStyle = card.artFg + '50'; ctx.lineWidth = .8; ctx.stroke();
+    }
+  },
+  crystalline(ctx, card, w, h) {
+    const cx = w/2, cy = h*0.5;
+    // Draw crystal facets
+    const pts = [];
+    for (let i = 0; i < 6; i++) {
+      const ang = (i/6)*Math.PI*2 - Math.PI/6;
+      pts.push([cx + Math.cos(ang)*26, cy + Math.sin(ang)*26]);
+    }
+    // Fill hexagon
+    ctx.beginPath(); ctx.moveTo(...pts[0]);
+    pts.forEach(p => ctx.lineTo(...p));
+    ctx.closePath();
+    const g = ctx.createLinearGradient(cx-26, cy-26, cx+26, cy+26);
+    g.addColorStop(0, card.artFg+'60'); g.addColorStop(.5, card.artFg+'20'); g.addColorStop(1, card.artFg+'60');
+    ctx.fillStyle = g; ctx.fill();
+    ctx.strokeStyle = card.artFg + 'cc'; ctx.lineWidth = 1.5; ctx.stroke();
+    // Inner facets
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(...pts[i]); ctx.lineTo(...pts[(i+1)%6]);
+      ctx.strokeStyle = card.artFg + '80'; ctx.lineWidth = .8; ctx.stroke();
+    }
+    // Core glow
+    const cg = ctx.createRadialGradient(cx, cy, 0, cx, cy, 12);
+    cg.addColorStop(0, '#ffffff'); cg.addColorStop(.3, card.artFg+'cc'); cg.addColorStop(1, 'transparent');
+    ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI*2); ctx.fillStyle = cg; ctx.fill();
+  },
+  storm(ctx, card, w, h) {
+    const cx = w/2, cy = h*0.4;
+    // Cloud-like masses
+    for (let i = 0; i < 5; i++) {
+      const x = cx + (Math.sin(i*1.3)*20), y = cy + i*6;
+      const r = 18 - i*2;
+      const g = ctx.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0, card.artFg+'40'); g.addColorStop(1, 'transparent');
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle = g; ctx.fill();
+    }
+    // Bolts
+    const bolt = (x1,y1,x2,y2) => {
+      ctx.beginPath(); ctx.moveTo(x1,y1);
+      const mx = (x1+x2)/2 + (Math.random()-.5)*16, my = (y1+y2)/2;
+      ctx.lineTo(mx,my); ctx.lineTo(x2,y2);
+      ctx.strokeStyle = card.artFg; ctx.lineWidth = 2; ctx.stroke();
+      ctx.strokeStyle = '#ffffff80'; ctx.lineWidth = .8; ctx.stroke();
+    };
+    bolt(cx-5, cy+5, cx+8, cy+22); bolt(cx+8, cy+5, cx-4, cy+20);
+    // Glow at tips
+    const sg = ctx.createRadialGradient(cx, cy+22, 0, cx, cy+22, 6);
+    sg.addColorStop(0, '#ffffffcc'); sg.addColorStop(1, 'transparent');
+    ctx.beginPath(); ctx.arc(cx, cy+22, 6, 0, Math.PI*2); ctx.fillStyle = sg; ctx.fill();
+  },
+  ancient(ctx, card, w, h) {
+    const cx = w/2, cy = h*0.5;
+    // Outer circle
+    ctx.beginPath(); ctx.arc(cx, cy, 30, 0, Math.PI*2);
+    ctx.strokeStyle = card.artFg + '80'; ctx.lineWidth = 1; ctx.stroke();
+    // Inner circle
+    ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI*2);
+    ctx.strokeStyle = card.artFg + 'aa'; ctx.lineWidth = 1.5; ctx.stroke();
+    // Rune-like marks
+    for (let i = 0; i < 8; i++) {
+      const ang = (i/8)*Math.PI*2;
+      const x = cx + Math.cos(ang)*24, y = cy + Math.sin(ang)*24;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(ang);
+      ctx.beginPath();
+      ctx.moveTo(-3, -4); ctx.lineTo(3, -4); ctx.moveTo(0, -4); ctx.lineTo(0, 4);
+      ctx.moveTo(-3, 4); ctx.lineTo(3, 4);
+      ctx.strokeStyle = card.artFg + 'dd'; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.restore();
+    }
+    // Connecting spokes
+    for (let i = 0; i < 8; i++) {
+      const ang = (i/8)*Math.PI*2;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(ang)*18, cy + Math.sin(ang)*18);
+      ctx.lineTo(cx + Math.cos(ang)*22, cy + Math.sin(ang)*22);
+      ctx.strokeStyle = card.artFg + 'cc'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    // Center symbol
+    ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI*2);
+    ctx.fillStyle = card.artFg; ctx.fill();
+  },
+  circuit(ctx, card, w, h) {
+    // Grid lines
+    for (let x = 0; x < w; x += 12) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h);
+      ctx.strokeStyle = card.artFg + '18'; ctx.lineWidth = .8; ctx.stroke();
+    }
+    for (let y = 0; y < h; y += 12) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y);
+      ctx.strokeStyle = card.artFg + '18'; ctx.lineWidth = .8; ctx.stroke();
+    }
+    // Circuit paths
+    const paths = [[10,20,30,20,30,50,50,50],[60,30,60,60,30,60],[20,70,20,90,50,90,50,80]];
+    paths.forEach(pts => {
+      ctx.beginPath(); ctx.moveTo(pts[0],pts[1]);
+      for(let i=2;i<pts.length;i+=2) ctx.lineTo(pts[i],pts[i+1]);
+      ctx.strokeStyle = card.artFg + 'cc'; ctx.lineWidth = 1.5; ctx.stroke();
+      // Nodes at corners
+      ctx.beginPath(); ctx.arc(pts[0],pts[1],2.5,0,Math.PI*2); ctx.fillStyle = card.artFg; ctx.fill();
+    });
+    // Main chip
+    const cx = w/2, cy = h/2;
+    ctx.strokeRect(cx-12, cy-10, 24, 20);
+    ctx.strokeStyle = card.artFg + 'aa'; ctx.lineWidth = 1.5; ctx.strokeRect(cx-12, cy-10, 24, 20);
+    for(let i=0;i<3;i++){
+      ctx.beginPath(); ctx.moveTo(cx-12-4, cy-6+i*6); ctx.lineTo(cx-12, cy-6+i*6);
+      ctx.strokeStyle = card.artFg; ctx.lineWidth = 1; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx+12, cy-6+i*6); ctx.lineTo(cx+12+4, cy-6+i*6); ctx.stroke();
+    }
+    const cg = ctx.createRadialGradient(cx,cy,0,cx,cy,8);
+    cg.addColorStop(0, card.artFg+'80'); cg.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(cx,cy,8,0,Math.PI*2); ctx.fillStyle=cg; ctx.fill();
+  },
+  organic(ctx, card, w, h) {
+    const cx = w/2, cy = h*0.5;
+    // Flowing curves
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath();
+      ctx.moveTo(10, cy + Math.sin(i*.8)*20);
+      ctx.bezierCurveTo(
+        cx*0.5, cy + Math.cos(i*.5)*30,
+        cx*1.5, cy - Math.sin(i*.7)*25,
+        w-10, cy + Math.cos(i*.6)*18
+      );
+      ctx.strokeStyle = card.artFg + (30+i*15).toString(16).padStart(2,'0');
+      ctx.lineWidth = 2 - i*.2; ctx.stroke();
+    }
+    // Leaf-like shape
+    ctx.beginPath();
+    ctx.moveTo(cx, cy-28); ctx.bezierCurveTo(cx+18,cy-10,cx+18,cy+10,cx,cy+28);
+    ctx.bezierCurveTo(cx-18,cy+10,cx-18,cy-10,cx,cy-28);
+    ctx.fillStyle = card.artFg + '25'; ctx.fill();
+    ctx.strokeStyle = card.artFg + 'bb'; ctx.lineWidth = 1.5; ctx.stroke();
+    // Vein
+    ctx.beginPath(); ctx.moveTo(cx, cy-28); ctx.lineTo(cx, cy+28);
+    ctx.strokeStyle = card.artFg + '90'; ctx.lineWidth = .8; ctx.stroke();
+    // Dots
+    for (let i = 0; i < 6; i++) {
+      const y = cy - 20 + i*8, offset = i%2?4:-4;
+      ctx.beginPath(); ctx.arc(cx+offset, y, 1.5, 0, Math.PI*2);
+      ctx.fillStyle = card.artFg + 'aa'; ctx.fill();
+    }
+  },
+  cosmic(ctx, card, w, h) {
+    // Starfield
+    for (let i = 0; i < 40; i++) {
+      const x = Math.random()*w, y = Math.random()*h;
+      const r = Math.random()*1.5;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(255,255,255,${.2+Math.random()*.5})`; ctx.fill();
+    }
+    // Nebula
+    const cx = w/2, cy = h*0.45;
+    const ng = ctx.createRadialGradient(cx,cy,0,cx,cy,30);
+    ng.addColorStop(0, card.artFg+'50'); ng.addColorStop(.6, card.artFg+'20'); ng.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(cx,cy,30,0,Math.PI*2); ctx.fillStyle=ng; ctx.fill();
+    // Planet
+    const pg = ctx.createRadialGradient(cx-4,cy-4,0,cx,cy,14);
+    pg.addColorStop(0,'#ffffff60'); pg.addColorStop(.4,card.artFg+'cc'); pg.addColorStop(1,card.artFg+'44');
+    ctx.beginPath(); ctx.arc(cx,cy,14,0,Math.PI*2); ctx.fillStyle=pg; ctx.fill();
+    // Ring
+    ctx.beginPath(); ctx.ellipse(cx,cy,22,6,Math.PI/6,0,Math.PI*2);
+    ctx.strokeStyle=card.artFg+'80'; ctx.lineWidth=1.5; ctx.stroke();
+  },
+  shadow(ctx, card, w, h) {
+    const cx = w/2, cy = h*0.5;
+    // Dark silhouette triangles
+    const tris = [[cx,cy-30,cx-20,cy+20,cx+20,cy+20],[cx,cy-15,cx+24,cy+10,cx+16,cy-28],[cx,cy-15,cx-24,cy+10,cx-16,cy-28]];
+    tris.forEach((pts,i) => {
+      ctx.beginPath(); ctx.moveTo(pts[0],pts[1]); ctx.lineTo(pts[2],pts[3]); ctx.lineTo(pts[4],pts[5]); ctx.closePath();
+      ctx.fillStyle = card.artFg + (20+i*18).toString(16).padStart(2,'0');
+      ctx.strokeStyle = card.artFg + 'aa'; ctx.lineWidth=1; ctx.fill(); ctx.stroke();
+    });
+    // Glow from center
+    const cg = ctx.createRadialGradient(cx,cy,0,cx,cy,16);
+    cg.addColorStop(0,card.artFg+'50'); cg.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(cx,cy,16,0,Math.PI*2); ctx.fillStyle=cg; ctx.fill();
+  },
+  radiant(ctx, card, w, h) {
+    const cx = w/2, cy = h*0.5;
+    // Sun rays
+    for (let i = 0; i < 16; i++) {
+      const ang = (i/16)*Math.PI*2;
+      const r1 = 12, r2 = 30 + (i%2)*12;
+      ctx.beginPath();
+      ctx.moveTo(cx+Math.cos(ang)*r1, cy+Math.sin(ang)*r1);
+      ctx.lineTo(cx+Math.cos(ang)*r2, cy+Math.sin(ang)*r2);
+      ctx.strokeStyle = card.artFg + (60+i*10).toString(16).padStart(2,'0');
+      ctx.lineWidth = i%2===0 ? 2 : 1; ctx.stroke();
+    }
+    // Core burst
+    const bg = ctx.createRadialGradient(cx,cy,0,cx,cy,14);
+    bg.addColorStop(0,'#ffffff'); bg.addColorStop(.4,card.artFg+'ff'); bg.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(cx,cy,14,0,Math.PI*2); ctx.fillStyle=bg; ctx.fill();
+    // Halo ring
+    ctx.beginPath(); ctx.arc(cx,cy,28,0,Math.PI*2);
+    ctx.strokeStyle=card.artFg+'40'; ctx.lineWidth=3; ctx.stroke();
+  },
+  serpent(ctx, card, w, h) {
+    // Snake-like path
+    ctx.beginPath();
+    ctx.moveTo(10, h*0.3);
+    ctx.bezierCurveTo(w*.3, h*.1, w*.7, h*.5, w*.5, h*.5);
+    ctx.bezierCurveTo(w*.3, h*.5, w*.2, h*.8, w*.8, h*.7);
+    ctx.strokeStyle = card.artFg + 'dd'; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.stroke();
+    ctx.strokeStyle = card.artFg + '50'; ctx.lineWidth = 8; ctx.stroke();
+    ctx.strokeStyle = '#ffffff30'; ctx.lineWidth = 2; ctx.stroke();
+    // Eye
+    ctx.beginPath(); ctx.arc(14, h*.32, 3.5, 0, Math.PI*2);
+    ctx.fillStyle = '#ffff00'; ctx.fill();
+    ctx.beginPath(); ctx.arc(14, h*.32, 1.5, 0, Math.PI*2);
+    ctx.fillStyle = '#000000'; ctx.fill();
+  },
+  fractal(ctx, card, w, h) {
+    const cx = w/2, cy = h*0.5;
+    const drawTri = (x, y, size, depth) => {
+      if (depth <= 0 || size < 2) return;
+      const h3 = size * Math.sqrt(3)/2;
+      ctx.beginPath();
+      ctx.moveTo(x, y-h3*2/3); ctx.lineTo(x-size/2, y+h3/3); ctx.lineTo(x+size/2, y+h3/3);
+      ctx.closePath();
+      ctx.strokeStyle = card.artFg + (30+depth*35).toString(16).padStart(2,'0');
+      ctx.lineWidth = depth*.5; ctx.stroke();
+      drawTri(x, y-h3/3, size/2, depth-1);
+      drawTri(x-size/4, y+h3/6, size/2, depth-1);
+      drawTri(x+size/4, y+h3/6, size/2, depth-1);
+    };
+    drawTri(cx, cy, 44, 4);
+  },
+  glacier(ctx, card, w, h) {
+    const cx = w/2, cy = h*0.5;
+    // Ice shards
+    const shards = [[cx,cy-32,cx-14,cy+8,cx+14,cy+8],[cx-16,cy-20,cx-28,cy+15,cx+2,cy+15],[cx+16,cy-18,cx-2,cy+12,cx+30,cy+14]];
+    shards.forEach((pts,i) => {
+      ctx.beginPath(); ctx.moveTo(pts[0],pts[1]); ctx.lineTo(pts[2],pts[3]); ctx.lineTo(pts[4],pts[5]); ctx.closePath();
+      const g = ctx.createLinearGradient(pts[0],pts[1],pts[4],pts[5]);
+      g.addColorStop(0, card.artFg+'90'); g.addColorStop(1, card.artFg+'25');
+      ctx.fillStyle = g; ctx.fill();
+      ctx.strokeStyle = card.artFg + 'cc'; ctx.lineWidth = 1; ctx.stroke();
+    });
+    // Reflection lines
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath();
+      ctx.moveTo(cx-20+i*10, cy+8); ctx.lineTo(cx-18+i*10, cy+20);
+      ctx.strokeStyle = '#ffffff30'; ctx.lineWidth = .8; ctx.stroke();
+    }
+  },
+  plague(ctx, card, w, h) {
+    const cx = w/2, cy = h*.5;
+    // Toxic bubbles
+    for (let i = 0; i < 8; i++) {
+      const ang = (i/8)*Math.PI*2;
+      const x = cx+Math.cos(ang)*18, y = cy+Math.sin(ang)*18;
+      const r = 5+i%3*2;
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+      ctx.fillStyle = card.artFg+(30+i*15).toString(16).padStart(2,'0');
+      ctx.strokeStyle = card.artFg+'aa'; ctx.lineWidth=1; ctx.fill(); ctx.stroke();
+    }
+    // Skull-ish center
+    ctx.beginPath(); ctx.arc(cx,cy-3,11,0,Math.PI*2);
+    ctx.fillStyle = card.artFg+'30'; ctx.fill();
+    ctx.strokeStyle = card.artFg+'cc'; ctx.lineWidth=1.5; ctx.stroke();
+    // Eye sockets
+    ctx.beginPath(); ctx.arc(cx-4,cy-4,3,0,Math.PI*2); ctx.fillStyle=card.artFg; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+4,cy-4,3,0,Math.PI*2); ctx.fillStyle=card.artFg; ctx.fill();
+    // Jaw
+    ctx.beginPath(); ctx.arc(cx,cy+5,8,0.3,Math.PI-0.3);
+    ctx.strokeStyle=card.artFg+'cc'; ctx.lineWidth=1.5; ctx.stroke();
+    for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(cx-6+i*6,cy+5);ctx.lineTo(cx-6+i*6,cy+10);ctx.strokeStyle=card.artFg;ctx.lineWidth=1.2;ctx.stroke();}
+  },
+  rune(ctx, card, w, h) {
+    const cx = w/2, cy = h*.5;
+    // Background circles
+    [32,22,12].forEach(r=>{ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle=card.artFg+(r).toString(16).padStart(2,'0')+'55';ctx.lineWidth=1;ctx.stroke();});
+    // Rune strokes
+    const runes = [[-8,-20,8,-20],[-8,-20,-14,0],[-8,-20,0,-6],[8,-20,14,0],[8,-20,0,-6],[-14,0,-8,20],[14,0,8,20],[-8,20,8,20],[0,-6,-14,0],[0,-6,14,0]];
+    runes.forEach(([x1,y1,x2,y2])=>{ctx.beginPath();ctx.moveTo(cx+x1,cy+y1);ctx.lineTo(cx+x2,cy+y2);ctx.strokeStyle=card.artFg+'ee';ctx.lineWidth=2;ctx.lineCap='round';ctx.stroke();});
+  },
+  prism(ctx, card, w, h) {
+    const cx = w/2, cy = h*.5;
+    // Prism triangle
+    ctx.beginPath(); ctx.moveTo(cx,cy-28); ctx.lineTo(cx-24,cy+16); ctx.lineTo(cx+24,cy+16); ctx.closePath();
+    ctx.strokeStyle = card.artFg+'cc'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle = card.artFg+'15'; ctx.fill();
+    // Refraction beams
+    const colors = ['#ff305080','#ffaa0080','#00e87a80','#3a7fff80','#9030ff80'];
+    colors.forEach((c,i)=>{
+      ctx.beginPath();
+      ctx.moveTo(cx+18,cy+10);
+      ctx.lineTo(cx+26+i*5,cy+16+i*8);
+      ctx.strokeStyle=c; ctx.lineWidth=1.5; ctx.stroke();
+    });
+    // Light beam in
+    ctx.beginPath(); ctx.moveTo(0,cy-10); ctx.lineTo(cx-3,cy-3);
+    ctx.strokeStyle='#ffffff80'; ctx.lineWidth=2; ctx.stroke();
+  },
+  specter(ctx, card, w, h) {
+    const cx = w/2, cy = h*.5;
+    // Ghost form
+    ctx.beginPath(); ctx.arc(cx, cy-10, 20, Math.PI, 0);
+    ctx.lineTo(cx+20, cy+22);
+    for(let i=0;i<4;i++){const x=cx+20-i*10;ctx.lineTo(x,cy+18-i%2*6);}
+    ctx.closePath();
+    ctx.fillStyle = card.artFg+'25'; ctx.fill();
+    ctx.strokeStyle = card.artFg+'90'; ctx.lineWidth=1.5; ctx.stroke();
+    // Eyes
+    [cx-7,cx+7].forEach(x=>{ctx.beginPath();ctx.arc(x,cy-12,3.5,0,Math.PI*2);ctx.fillStyle=card.artFg;ctx.fill();ctx.beginPath();ctx.arc(x,cy-12,1.5,0,Math.PI*2);ctx.fillStyle='#000';ctx.fill();});
+    // Glow
+    const gg=ctx.createRadialGradient(cx,cy-10,0,cx,cy-10,24);gg.addColorStop(0,card.artFg+'20');gg.addColorStop(1,'transparent');
+    ctx.beginPath();ctx.arc(cx,cy-10,24,0,Math.PI*2);ctx.fillStyle=gg;ctx.fill();
+  },
+  geo(ctx, card, w, h) {
+    const cx = w/2, cy = h*.5;
+    // Diamond
+    ctx.beginPath(); ctx.moveTo(cx,cy-26); ctx.lineTo(cx+20,cy); ctx.lineTo(cx,cy+26); ctx.lineTo(cx-20,cy); ctx.closePath();
+    ctx.strokeStyle=card.artFg+'cc'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle=card.artFg+'20'; ctx.fill();
+    // Inner diamond
+    ctx.beginPath(); ctx.moveTo(cx,cy-14); ctx.lineTo(cx+10,cy); ctx.lineTo(cx,cy+14); ctx.lineTo(cx-10,cy); ctx.closePath();
+    ctx.strokeStyle=card.artFg+'80'; ctx.lineWidth=1; ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx-20,cy);ctx.lineTo(cx+20,cy);ctx.strokeStyle=card.artFg+'50';ctx.lineWidth=.8;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx,cy-26);ctx.lineTo(cx,cy+26);ctx.strokeStyle=card.artFg+'50';ctx.lineWidth=.8;ctx.stroke();
+  },
+  thorn(ctx, card, w, h) {
+    const cx = w/2, cy = h*.5;
+    // Stem
+    ctx.beginPath(); ctx.moveTo(cx, cy+32); ctx.bezierCurveTo(cx-5,cy+10,cx+5,cy-10,cx,cy-30);
+    ctx.strokeStyle=card.artFg+'dd'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.stroke();
+    // Thorns
+    [cy+20,cy+5,cy-10,cy-22].forEach((y,i)=>{
+      const side = i%2?1:-1;
+      ctx.beginPath(); ctx.moveTo(cx,y); ctx.lineTo(cx+side*14,y-8); ctx.lineTo(cx+side*12,y-14);
+      ctx.strokeStyle=card.artFg+'cc'; ctx.lineWidth=1.5; ctx.stroke();
+    });
+    // Bud at top
+    ctx.beginPath(); ctx.arc(cx,cy-30,6,0,Math.PI*2);
+    ctx.fillStyle=card.artFg+'80'; ctx.fill();
+    ctx.strokeStyle=card.artFg; ctx.lineWidth=1.5; ctx.stroke();
+  },
+  wave(ctx, card, w, h) {
+    // Ocean waves
+    for (let i = 0; i < 5; i++) {
+      const y = h*.3 + i*12;
+      ctx.beginPath(); ctx.moveTo(0, y);
+      for (let x = 0; x <= w; x += 4) {
+        ctx.lineTo(x, y + Math.sin((x/w)*Math.PI*3 + i*.8)*8);
+      }
+      ctx.strokeStyle = card.artFg + (20+i*25).toString(16).padStart(2,'0');
+      ctx.lineWidth = 2-i*.2; ctx.stroke();
+    }
+    // Foam dots
+    for (let i = 0; i < 8; i++) {
+      ctx.beginPath(); ctx.arc(10+i*9, h*.3+Math.sin(i*.8)*5, 1.5, 0, Math.PI*2);
+      ctx.fillStyle='#ffffff60'; ctx.fill();
+    }
+  },
+  ember(ctx, card, w, h) {
+    const cx = w/2, cy = h*.5;
+    // Embers rising
+    for (let i = 0; i < 15; i++) {
+      const x = cx + (Math.random()-.5)*44, y = cy + 20 - i*6;
+      const r = 1.5 + Math.random()*2;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
+      ctx.fillStyle = i < 5 ? card.artFg : i < 10 ? '#ffaa00' : '#ff8000';
+      ctx.globalAlpha = .3 + Math.random()*.5; ctx.fill(); ctx.globalAlpha = 1;
+    }
+    // Main ember glow
+    const eg = ctx.createRadialGradient(cx,cy+10,0,cx,cy+10,20);
+    eg.addColorStop(0,'#ffffff'); eg.addColorStop(.3,card.artFg); eg.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(cx,cy+10,20,0,Math.PI*2); ctx.fillStyle=eg; ctx.fill();
+  },
+  nullVoid(ctx, card, w, h) {
+    const cx = w/2, cy = h*.5;
+    // Black hole spirals
+    for(let ring=0;ring<5;ring++){
+      ctx.beginPath(); ctx.arc(cx,cy,ring*6+5,0,Math.PI*2);
+      ctx.strokeStyle=card.artFg+(ring*18+20).toString(16).padStart(2,'0');
+      ctx.lineWidth=1; ctx.stroke();
+    }
+    // Accretion disk particles
+    for(let i=0;i<20;i++){
+      const ang=(i/20)*Math.PI*2, r=28+Math.sin(i*.5)*4;
+      ctx.beginPath(); ctx.arc(cx+Math.cos(ang)*r, cy+Math.sin(ang)*r*.4, 1.5, 0, Math.PI*2);
+      ctx.fillStyle=card.artFg+`${Math.floor(40+i*8).toString(16)}`; ctx.fill();
+    }
+    // Core abyss
+    const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,10);
+    cg.addColorStop(0,'#000000'); cg.addColorStop(.8,card.artFg+'40'); cg.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(cx,cy,10,0,Math.PI*2); ctx.fillStyle=cg; ctx.fill();
+  },
+  titan(ctx, card, w, h) {
+    const cx = w/2, cy = h*.5;
+    // Armored plates
+    const plates = [[-16,-24,32,14],[-20,-8,16,28],[4,-24,16,28],[4,-4,20,20]];
+    plates.forEach(([x,y,pw,ph])=>{
+      const px=cx+x, py=cy+y;
+      ctx.fillStyle=card.artFg+'30'; ctx.strokeStyle=card.artFg+'cc';ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.rect(px,py,pw,ph); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px+pw,py+ph);
+      ctx.strokeStyle=card.artFg+'40'; ctx.lineWidth=.8; ctx.stroke();
+    });
+    // Glowing core
+    const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,8);
+    cg.addColorStop(0,card.artFg+'ee'); cg.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(cx,cy,8,0,Math.PI*2); ctx.fillStyle=cg; ctx.fill();
+  },
+  fae(ctx, card, w, h) {
+    const cx = w/2, cy = h*.5;
+    // Wing shapes
+    const wing = (flip) => {
+      const s = flip ? -1 : 1;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.bezierCurveTo(cx+s*8,cy-20,cx+s*28,cy-18,cx+s*26,cy-4);
+      ctx.bezierCurveTo(cx+s*28,cy+8,cx+s*14,cy+16,cx,cy+5);
+      ctx.closePath();
+      ctx.fillStyle=card.artFg+'30'; ctx.fill();
+      ctx.strokeStyle=card.artFg+'cc'; ctx.lineWidth=1; ctx.stroke();
+      // Wing veins
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+s*20,cy-10);ctx.strokeStyle=card.artFg+'50';ctx.lineWidth=.8;ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx,cy+2);ctx.lineTo(cx+s*18,cy+8);ctx.stroke();
+    };
+    wing(false); wing(true);
+    // Body
+    ctx.beginPath(); ctx.ellipse(cx,cy,5,12,0,0,Math.PI*2);
+    ctx.fillStyle=card.artFg+'60'; ctx.fill();
+    // Glow
+    const gg=ctx.createRadialGradient(cx,cy,0,cx,cy,14);
+    gg.addColorStop(0,card.artFg+'40'); gg.addColorStop(1,'transparent');
+    ctx.beginPath();ctx.arc(cx,cy,14,0,Math.PI*2);ctx.fillStyle=gg;ctx.fill();
+  },
+};
+
+// ────────────────────────────────────────
+//  CARD TEMPLATES (40+ cards)
+// ────────────────────────────────────────
+const CARD_TEMPLATES = [
+  // MYTHIC
+  {id:'shadowfox', name:'Shadow Fox', rarity:'mythic', basePrice:320, archetype:'parabolicCrash', tags:['competitive'], artStyle:'shadow', artBg:'#120010', artFg:'#ff3050'},
+  {id:'phantomcall', name:'Phantom Call', rarity:'mythic', basePrice:390, archetype:'slowClimb', tags:['vintage','competitive'], artStyle:'specter', artBg:'#040816', artFg:'#a060ff'},
+  {id:'nullfield', name:'Null Field', rarity:'mythic', basePrice:280, archetype:'doubleSpike', tags:['competitive'], artStyle:'null_void', artBg:'#060408', artFg:'#4060c0'},
+  {id:'apexhunter', name:'Apex Hunter', rarity:'mythic', basePrice:410, archetype:'earlySpike', tags:['competitive'], artStyle:'titan', artBg:'#160808', artFg:'#ff6040'},
+  {id:'primordial', name:'Primordial Surge', rarity:'mythic', basePrice:355, archetype:'parabolicCrash', tags:['vintage'], artStyle:'ancient', artBg:'#0c0808', artFg:'#c08040'},
+
+  // LEGENDARY
+  {id:'ironclad', name:'Ironclad', rarity:'legendary', basePrice:110, archetype:'slowClimb', tags:['competitive','vintage'], artStyle:'titan', artBg:'#1a1200', artFg:'#ffb030'},
+  {id:'glacierking', name:'Glacier King', rarity:'legendary', basePrice:135, archetype:'doubleSpike', tags:['competitive','vintage'], artStyle:'glacier', artBg:'#041825', artFg:'#60c0ff'},
+  {id:'venomcloak', name:'Venom Cloak', rarity:'legendary', basePrice:92, archetype:'earlySpike', tags:['competitive','vintage'], artStyle:'thorn', artBg:'#060e04', artFg:'#60d040'},
+  {id:'solarchon', name:'Solar Archon', rarity:'legendary', basePrice:145, archetype:'slowClimb', tags:['competitive'], artStyle:'radiant', artBg:'#141008', artFg:'#ffc040'},
+  {id:'deepdread', name:'Deep Dread', rarity:'legendary', basePrice:88, archetype:'parabolicCrash', tags:['vintage'], artStyle:'plague', artBg:'#060e06', artFg:'#40c050'},
+  {id:'voidsovereign', name:'Void Sovereign', rarity:'legendary', basePrice:160, archetype:'doubleSpike', tags:['competitive'], artStyle:'voidEye', artBg:'#0a0420', artFg:'#8040ff'},
+  {id:'faemother', name:'Fae Mother', rarity:'legendary', basePrice:98, archetype:'slowClimb', tags:['vintage'], artStyle:'fae', artBg:'#060d10', artFg:'#40e0b0'},
+
+  // EPIC
+  {id:'voidwarden', name:'Void Warden', rarity:'epic', basePrice:48, archetype:'doubleSpike', tags:['competitive'], artStyle:'voidEye', artBg:'#0d0825', artFg:'#9030ff'},
+  {id:'neonfury', name:'Neon Fury', rarity:'epic', basePrice:58, archetype:'parabolicCrash', tags:['competitive'], artStyle:'storm', artBg:'#0a1020', artFg:'#00e880'},
+  {id:'stormheart', name:'Storm Heart', rarity:'epic', basePrice:52, archetype:'parabolicCrash', tags:['competitive'], artStyle:'storm', artBg:'#060a18', artFg:'#4060ff'},
+  {id:'solarwing', name:'Solar Wing', rarity:'epic', basePrice:42, archetype:'doubleSpike', tags:['vintage'], artStyle:'fae', artBg:'#14100a', artFg:'#ffc040'},
+  {id:'runebreaker', name:'Rune Breaker', rarity:'epic', basePrice:55, archetype:'earlySpike', tags:['competitive','vintage'], artStyle:'rune', artBg:'#0c0a10', artFg:'#c060ff'},
+  {id:'embermage', name:'Ember Mage', rarity:'epic', basePrice:38, archetype:'slowClimb', tags:['competitive'], artStyle:'ember', artBg:'#1a0800', artFg:'#ff7030'},
+  {id:'abysslord', name:'Abyss Lord', rarity:'epic', basePrice:62, archetype:'doubleSpike', tags:['competitive'], artStyle:'null_void', artBg:'#08060e', artFg:'#4040a0'},
+  {id:'terrasmith', name:'Terra Smith', rarity:'epic', basePrice:45, archetype:'slowClimb', tags:['vintage'], artStyle:'circuit', artBg:'#0a0e0a', artFg:'#60a040'},
+  {id:'serpentine', name:'Serpentine', rarity:'epic', basePrice:50, archetype:'earlySpike', tags:['competitive','vintage'], artStyle:'serpent', artBg:'#060e0a', artFg:'#20d060'},
+  {id:'prismwright', name:'Prism Wright', rarity:'epic', basePrice:44, archetype:'doubleSpike', tags:['vintage'], artStyle:'prism', artBg:'#0a0810', artFg:'#80a0ff'},
+  {id:'fractalmind', name:'Fractal Mind', rarity:'epic', basePrice:66, archetype:'parabolicCrash', tags:['competitive'], artStyle:'fractal', artBg:'#080a10', artFg:'#ff80c0'},
+
+  // RARE
+  {id:'crystalspire', name:'Crystal Spire', rarity:'rare', basePrice:20, archetype:'earlySpike', tags:['vintage'], artStyle:'crystalline', artBg:'#041428', artFg:'#4080ff'},
+  {id:'mirrorpool', name:'Mirror Pool', rarity:'rare', basePrice:24, archetype:'slowClimb', tags:['vintage'], artStyle:'wave', artBg:'#060a14', artFg:'#60b0ff'},
+  {id:'bloodthorn', name:'Blood Thorn', rarity:'rare', basePrice:16, archetype:'earlySpike', tags:['competitive'], artStyle:'thorn', artBg:'#1a0408', artFg:'#ff2040'},
+  {id:'wavecrest', name:'Wave Crest', rarity:'rare', basePrice:18, archetype:'doubleSpike', tags:['competitive'], artStyle:'wave', artBg:'#040e18', artFg:'#00b0e0'},
+  {id:'ashwalker', name:'Ash Walker', rarity:'rare', basePrice:22, archetype:'slowClimb', tags:['vintage'], artStyle:'ember', artBg:'#100c0a', artFg:'#c0a080'},
+  {id:'glitchborn', name:'Glitch Born', rarity:'rare', basePrice:19, archetype:'doubleSpike', tags:['competitive'], artStyle:'circuit', artBg:'#080814', artFg:'#00ffe0'},
+  {id:'duskblade', name:'Dusk Blade', rarity:'rare', basePrice:15, archetype:'earlySpike', tags:['competitive','vintage'], artStyle:'geo', artBg:'#100810', artFg:'#c040e0'},
+  {id:'starshaper', name:'Star Shaper', rarity:'rare', basePrice:26, archetype:'slowClimb', tags:['vintage'], artStyle:'cosmic', artBg:'#040610', artFg:'#80c0ff'},
+  {id:'forestwhisper', name:'Forest Whisper', rarity:'rare', basePrice:17, archetype:'earlySpike', tags:['vintage'], artStyle:'organic', artBg:'#060e06', artFg:'#40b060'},
+  {id:'ironveil', name:'Iron Veil', rarity:'rare', basePrice:21, archetype:'slowClimb', tags:['competitive'], artStyle:'geo', artBg:'#0e0e0e', artFg:'#808080'},
+  {id:'cosmicrift', name:'Cosmic Rift', rarity:'rare', basePrice:28, archetype:'parabolicCrash', tags:['competitive','vintage'], artStyle:'cosmic', artBg:'#060414', artFg:'#c060ff'},
+
+  // COMMON
+  {id:'thornveil', name:'Thorn Veil', rarity:'common', basePrice:3.8, archetype:'earlySpike', tags:['vintage'], artStyle:'thorn', artBg:'#071208', artFg:'#40a020'},
+  {id:'dustborn', name:'Dust Born', rarity:'common', basePrice:1.4, archetype:'slowClimb', tags:['vintage'], artStyle:'geo', artBg:'#120e08', artFg:'#a08040'},
+  {id:'nullstone', name:'Null Stone', rarity:'common', basePrice:0.9, archetype:'earlySpike', tags:['vintage'], artStyle:'null_void', artBg:'#080808', artFg:'#505050'},
+  {id:'rustguard', name:'Rust Guard', rarity:'common', basePrice:2.5, archetype:'slowClimb', tags:['vintage'], artStyle:'circuit', artBg:'#120c08', artFg:'#a06040'},
+  {id:'siltdrifter', name:'Silt Drifter', rarity:'common', basePrice:0.7, archetype:'slowClimb', tags:['vintage'], artStyle:'wave', artBg:'#100e08', artFg:'#a09060'},
+  {id:'embershard', name:'Ember Shard', rarity:'common', basePrice:2.1, archetype:'earlySpike', tags:['vintage'], artStyle:'ember', artBg:'#140a08', artFg:'#d07040'},
+  {id:'mirefolk', name:'Mire Folk', rarity:'common', basePrice:1.8, archetype:'slowClimb', tags:['vintage'], artStyle:'organic', artBg:'#080c08', artFg:'#608050'},
+  {id:'cobaltchip', name:'Cobalt Chip', rarity:'common', basePrice:1.1, archetype:'slowClimb', tags:['vintage'], artStyle:'circuit', artBg:'#080a12', artFg:'#3060a0'},
+  {id:'bonecaller', name:'Bone Caller', rarity:'common', basePrice:3.2, archetype:'earlySpike', tags:['vintage','competitive'], artStyle:'plague', artBg:'#0e0a08', artFg:'#c0b090'},
+  {id:'frostmote', name:'Frost Mote', rarity:'common', basePrice:1.6, archetype:'slowClimb', tags:['vintage'], artStyle:'glacier', artBg:'#080c12', artFg:'#80b0c0'},
+];
+
+const RARITY_COLORS = {common:'#5a6080', rare:'#3a7fff', epic:'#9030ff', legendary:'#ffaa00', mythic:'#ff3050'};
+const RARITY_MULTS = {common:1, rare:2.5, epic:6, legendary:16, mythic:55};
+const RARITY_VOL = {common:.02, rare:.04, epic:.07, legendary:.11, mythic:.18};
+const RARITY_PRINT = {common:50000, rare:8000, epic:1500, legendary:300, mythic:75};
+
+const MISPRINT_TYPES = [
+  {name:'Off-Center', code:'OC', bm:1.8, um:8, c:.026, uc:.004},
+  {name:'Ink Smear', code:'IS', bm:2.2, um:12, c:.018, uc:.003},
+  {name:'Wrong Back', code:'WB', bm:5, um:28, c:.008, uc:.0018},
+  {name:'Holo Glitch', code:'HG', bm:3.5, um:20, c:.012, uc:.002},
+  {name:'Numbering Error', code:'NE', bm:4.5, um:35, c:.006, uc:.001},
+  {name:'Double Stamp', code:'DS', bm:7, um:45, c:.004, uc:.0006},
+  {name:'Texture Defect', code:'TD', bm:2, um:10, c:.022, uc:.003},
+  {name:'Sig Overlay', code:'SO', bm:10, um:70, c:.003, uc:.0003},
+  {name:'Color Inversion', code:'CI', bm:6, um:38, c:.005, uc:.0008},
+  {name:'Ghost Image', code:'GI', bm:3, um:16, c:.014, uc:.002},
+  {name:'Foil Error', code:'FE', bm:4, um:22, c:.009, uc:.0014},
+  {name:'Blank Back', code:'BB', bm:8, um:55, c:.003, uc:.0004},
+];
+
+const ARCHETYPES = {
+  slowClimb:{db:.004, vol:.015, decay:.001, burstC:.015},
+  earlySpike:{db:.025, vol:.042, decay:.009, peakAt:.28, fadeTo:.3},
+  doubleSpike:{db:.018, vol:.048, decay:.007, s1:.24, s2:.62},
+  parabolicCrash:{db:.042, vol:.072, decay:.002, crashAt:.72, severity:.68}
+};
+
+const GRAPH_ARCHETYPE_NAMES = {slowClimb:'SLOW CLIMB',earlySpike:'EARLY SPIKE',doubleSpike:'DOUBLE SPIKE ⚠',parabolicCrash:'PARABOLIC ⚠⚠'};
+
+const RANKS = [
+  {name:'ROOKIE',xp:0,color:'#5a6080'},{name:'TRADER',xp:500,color:'#3a7fff'},{name:'SPECULATOR',xp:2000,color:'#9030ff'},
+  {name:'SHARK',xp:6000,color:'#ffaa00'},{name:'WHALE',xp:15000,color:'#ff3050'},{name:'LEGEND',xp:40000,color:'#ffd700'},
+  {name:'ORACLE',xp:100000,color:'#ffffff'}
+];
+
+const TOOLS = [
+  {id:'vol', name:'Volatility Scanner', desc:'Shows exact volatility tier for every card in market', rk:1, icon:'📊'},
+  {id:'mhunt', name:'Misprint Hunter', desc:'+3% misprint detection bonus on all pack pulls', rk:2, icon:'🔍'},
+  {id:'rumor', name:'Rumor Confidence Meter', desc:'Shows impact probability % on market events', rk:2, icon:'📡'},
+  {id:'advchart', name:'Advanced Charts', desc:'MA-20 line, volume bars, bubble risk overlay, RSI indicator', rk:3, icon:'📈'},
+  {id:'lowfee', name:'Reduced Fees', desc:'Trading fee cut from 2% → 0.5%', rk:3, icon:'💰'},
+  {id:'autoalert', name:'Auto-Alert System', desc:'Auto-notifies on misprint discoveries and +30% price surges', rk:4, icon:'🔔'},
+  {id:'shortell', name:'Short Selling', desc:'Borrow cards to sell, buy back lower — new SELL SHORT button', rk:4, icon:'📉'},
+  {id:'gradebot', name:'Grade-Bot', desc:'Card grading is free (normally $50/grade)', rk:5, icon:'🏆'},
+  {id:'insider', name:'Insider Feed', desc:'See event 5 ticks BEFORE it triggers publicly', rk:5, icon:'👁'},
+];
+
+const ACHIEVEMENTS = [
+  {id:'firstbuy', name:'First Trade', desc:'Buy your first card', goal:1, type:'trades', xp:50},
+  {id:'traderx', name:'Active Trader', desc:'Complete 25 trades', goal:25, type:'trades', xp:200},
+  {id:'sharkmode', name:'Shark Mode', desc:'Complete 100 trades', goal:100, type:'trades', xp:800},
+  {id:'firstpack', name:'Pack Rat', desc:'Open your first pack', goal:1, type:'packs', xp:30},
+  {id:'packaddict', name:'Pack Addict', desc:'Open 20 packs', goal:20, type:'packs', xp:500},
+  {id:'misprinter', name:'Error Hunter', desc:'Find your first misprint', goal:1, type:'misprints', xp:100},
+  {id:'ultraerror', name:'Ultra Error', desc:'Find an ultra-rare misprint', goal:1, type:'ultras', xp:1000},
+  {id:'kflipper', name:'K-Flipper', desc:'Make $1,000 profit in a single trade', goal:1000, type:'singletrade', xp:300},
+  {id:'bigballer', name:'Big Baller', desc:'Net worth reaches $50,000', goal:50000, type:'networth', xp:500},
+  {id:'whale', name:'Whale', desc:'Net worth reaches $100,000', goal:100000, type:'networth', xp:2000},
+  {id:'hodler', name:'HODL', desc:'Hold a Legendary for 200 ticks', goal:200, type:'holdtime', xp:400},
+  {id:'grader', name:'Quality Grader', desc:'Grade 10 cards', goal:10, type:'graded', xp:300},
+  {id:'watcher', name:'Market Watcher', desc:'Watchlist 10 cards simultaneously', goal:10, type:'watchcount', xp:150},
+  {id:'collector', name:'Serious Collector', desc:'Own 15 unique cards at once', goal:15, type:'uniquecards', xp:600},
+  {id:'sealedbox', name:'Sealed Flipper', desc:'Profit from a sealed box', goal:1, type:'sealedsold', xp:250},
+  {id:'bubblesurf', name:'Bubble Surfer', desc:'Sell a card within 10 ticks of its peak', goal:1, type:'peaksell', xp:400},
+  {id:'crashsurvive', name:'Crash Survivor', desc:'Hold through a 50% drop and recover', goal:1, type:'crashsurvive', xp:300},
+];
+
+const MARKET_EVENTS = [
+  {id:'tournament', name:'TOURNAMENT META SHIFT', desc:'A major event changed the meta. Competitive cards surge hard.', type:'bull', dm:2.4, vm:1.8, dur:50, tag:'competitive'},
+  {id:'influencer', name:'INFLUENCER SPOTLIGHT', desc:'Top streamer opened 500 packs live. Pure hype.', type:'bull', dm:3.0, vm:2.6, dur:28, tag:'any'},
+  {id:'reprint', name:'REPRINT RUMOR', desc:'Supplier hints at reprint incoming. Holders nervous.', type:'bear', dm:0.45, vm:2.2, dur:42, tag:'any'},
+  {id:'ban', name:'BAN ANNOUNCEMENT', desc:'Card banned from sanctioned play. Demand collapses.', type:'bear', dm:0.22, vm:3.2, dur:65, tag:'competitive'},
+  {id:'nostalgia', name:'NOSTALGIA WAVE', desc:'Vintage collectors are going crazy for old classics.', type:'bull', dm:1.9, vm:1.4, dur:55, tag:'vintage'},
+  {id:'leak', name:'PRODUCT LEAK', desc:'New set spoilers everywhere. Hype building fast.', type:'bull', dm:1.7, vm:1.6, dur:38, tag:'any'},
+  {id:'fakerumor', name:'FAKE RUMOR DEBUNKED', desc:'The rumor was fake. Volatility spike, no lasting effect.', type:'neutral', dm:1.0, vm:2.9, dur:14, tag:'any'},
+  {id:'collector_disc', name:'COLLECTOR DISCOVERY', desc:'Rare misprint authenticated. Error cards suddenly in focus.', type:'bull', dm:3.8, vm:2.1, dur:45, tag:'misprint'},
+  {id:'crash', name:'MARKET CORRECTION', desc:'Overvalued cards correcting hard. Panic everywhere.', type:'bear', dm:0.38, vm:4.2, dur:22, tag:'any'},
+  {id:'newset', name:'NEW SET ANNOUNCED', desc:'Old cards face rotation. New chase cards take spotlight.', type:'bear', dm:0.55, vm:1.9, dur:60, tag:'vintage'},
+  {id:'gradecraze', name:'GRADING CRAZE', desc:'PSA-style grading is trending. Graded cards command huge premiums.', type:'bull', dm:2.0, vm:1.5, dur:50, tag:'any'},
+  {id:'whale_buy', name:'WHALE ACCUMULATION', desc:'A known whale is buying aggressively. Price floors rising.', type:'bull', dm:2.2, vm:1.6, dur:35, tag:'legendary'},
+  {id:'artcontest', name:'ARTIST SPOTLIGHT', desc:'Card artist went viral. Their cards spiking across rarities.', type:'bull', dm:1.6, vm:1.3, dur:45, tag:'vintage'},
+  {id:'hackrumor', name:'COUNTERFEIT ALERT', desc:'Reports of fakes circulating. Authentication panic selling.', type:'bear', dm:0.65, vm:2.8, dur:30, tag:'any'},
+  {id:'championship', name:'WORLD CHAMPIONSHIP', desc:'Players preparing for worlds. Top competitive cards flying.', type:'bull', dm:2.8, vm:2.0, dur:40, tag:'competitive'},
+  {id:'recession', name:'MARKET RECESSION', desc:'General market downturn. All cards affected.', type:'bear', dm:0.50, vm:2.5, dur:55, tag:'any'},
+];
+
+const PACKS = [
+  {id:'starter', name:'Starter Bundle', desc:'3 cards, guaranteed Rare. Perfect for beginners.', cost:35, cards:3, ev:40, rates:{common:.55,rare:.35,epic:.08,legendary:.02,mythic:.0}, gRare:true, mBonus:1.0, color:'var(--common)'},
+  {id:'booster', name:'Standard Booster', desc:'5 cards with balanced pull rates. The classic.', cost:80, cards:5, ev:85, rates:{common:.50,rare:.30,epic:.14,legendary:.05,mythic:.01}, mBonus:1.0, color:'var(--rare)'},
+  {id:'premium', name:'Premium Booster', desc:'8 cards, guaranteed Epic+. 2× misprint rate.', cost:250, cards:8, ev:265, rates:{common:.28,rare:.35,epic:.24,legendary:.10,mythic:.03}, gEpic:true, mBonus:2.0, color:'var(--epic)'},
+  {id:'legend_chest', name:"Legend's Chest", desc:'12 cards, guaranteed Legendary. Ultra foil odds.', cost:600, cards:12, ev:580, rates:{common:.15,rare:.30,epic:.30,legendary:.20,mythic:.05}, gLegend:true, mBonus:2.5, color:'var(--legendary)'},
+  {id:'vault', name:'Error Vault Box', desc:'20 cards with 4× misprint chance. Chase the ultra-rares.', cost:900, cards:20, ev:860, rates:{common:.22,rare:.32,epic:.26,legendary:.15,mythic:.05}, mBonus:4.0, color:'var(--amber)'},
+  {id:'mythic_key', name:'Mythic Key Pack', desc:'5 cards, extremely high Mythic rate. High risk, high reward.', cost:500, cards:5, ev:420, rates:{common:.10,rare:.20,epic:.30,legendary:.25,mythic:.15}, mBonus:3.0, color:'var(--mythic)'},
+  {id:'vintage_archive', name:'Vintage Archive', desc:'10 vintage cards with elevated misprint detection.', cost:400, cards:10, ev:390, rates:{common:.30,rare:.38,epic:.22,legendary:.08,mythic:.02}, mBonus:3.5, vintageFocus:true, color:'var(--teal)'},
+  {id:'tournament_pack', name:'Tournament Special', desc:'8 competitive-only cards. Meta-relevant pulls only.', cost:320, cards:8, ev:310, rates:{common:.20,rare:.35,epic:.30,legendary:.12,mythic:.03}, compFocus:true, mBonus:1.5, color:'var(--cyan)'},
+  {id:'artisan', name:'Artisan Collection', desc:'6 cards from rare artist sets. Elevated collector appeal.', cost:280, cards:6, ev:275, rates:{common:.15,rare:.30,epic:.32,legendary:.18,mythic:.05}, mBonus:2.0, artisan:true, color:'var(--pink)'},
+  {id:'mega_box', name:'Mega Collector Box', desc:'40 cards. Best overall EV. Misprint bonanza.', cost:2800, cards:40, ev:3100, rates:{common:.18,rare:.30,epic:.28,legendary:.18,mythic:.06}, mBonus:5.0, gLegend:true, color:'var(--gold)'},
+];
+
+const SEALED_BOXES = [
+  {id:'sb1', name:'First Edition Box', packId:'booster', qty:36, baseValue:2800, decayRate:.001, misprintBonus:.3, currentValue:null, owned:0},
+  {id:'sb2', name:'Vintage Vault Box', packId:'vintage_archive', qty:24, baseValue:9500, decayRate:.0005, misprintBonus:.5, currentValue:null, owned:0},
+  {id:'sb3', name:'Tournament Edition', packId:'tournament_pack', qty:20, baseValue:6200, decayRate:.0008, misprintBonus:.2, currentValue:null, owned:0},
+  {id:'sb4', name:'Error Series Box', packId:'vault', qty:12, baseValue:10500, decayRate:.0003, misprintBonus:.8, currentValue:null, owned:0},
+];
+
+// ────────────────────────────────────────
+//  STATE
+// ────────────────────────────────────────
+let G = {
+  money:10000, xp:0, rank:0, tick:0, qty:1,
+  sel:null, filter:'all', sort:'change', scan:'movers',
+  trades:0, wins:0, bestFlip:0, worstFlip:0, packs:0, graded:0,
+  pnl:0, netWorthHistory:[], priceAlerts:[], watchlist:new Set(),
+  achProg:{}, achDone:new Set(),
+  shortPositions:{}, holdTimers:{},
+  sealedsold:0, peaksells:0,
+};
+
+let cards = {}, hist = {}, inv = {}, tradeHist = [], tickerMsgs = [], tickIdx = 0;
+let evCooldown = 0, activeEvents = [];
+let portHistory = [];
+let alertNewCount = 0;
+
+// ────────────────────────────────────────
+//  INIT
+// ────────────────────────────────────────
+function init() {
+  CARD_TEMPLATES.forEach(t => {
+    const mp = rollMisprint(1);
+    cards[t.id] = {
+      ...t,
+      price: t.basePrice * (.85 + Math.random()*.32),
+      prevPrice: t.basePrice,
+      openPrice: t.basePrice,
+      demand: .9 + Math.random()*.3,
+      hype: 0,
+      reprintRisk: .02 + Math.random()*.14,
+      collectorAppeal: 25 + Math.random()*75,
+      metaPower: 15 + Math.random()*85,
+      printRun: RARITY_PRINT[t.rarity],
+      volBase: RARITY_VOL[t.rarity],
+      hypeSens: .3 + Math.random()*.7,
+      ap: Math.random()*.2,
+      misprint: mp,
+      mpDisc: false,
+      mpTimer: mp ? (80 + Math.floor(Math.random()*180)) : Infinity,
+      peakTimer: 60 + Math.floor(Math.random()*120),
+      isBubble: false,
+      volume: 0,
+      allTimeHigh: t.basePrice,
+      allTimeLow: t.basePrice,
+    };
+    hist[t.id] = Array(180).fill(cards[t.id].price);
+  });
+
+  ACHIEVEMENTS.forEach(a => { G.achProg[a.id] = 0; });
+  SEALED_BOXES.forEach(sb => { sb.currentValue = sb.baseValue; });
+
+  renderPacks(); renderTools(); renderAchievements(); renderSealedBoxes();
+  updateMarketList();
+  updateTopBar();
+  updateXP();
+  updateStats();
+  initTicker();
+
+  setTimeout(() => {
+    selectCard(CARD_TEMPLATES[0].id);
+    addTicker('Market simulation live. ErrorMint v2 — 40 cards, 10 packs, full economy engine running.');
+  }, 300);
+
+  setInterval(gameTick, 1000);
+  setInterval(updateChart, 200);
+  setInterval(updatePortChart, 3000);
+  window.addEventListener('resize', () => { if(G.sel) updateChart(); });
+}
+
+// ────────────────────────────────────────
+//  MISPRINT ROLL
+// ────────────────────────────────────────
+function rollMisprint(mult=1) {
+  for (const mt of MISPRINT_TYPES) {
+    if (Math.random() < mt.c * mult) {
+      const ultra = Math.random() < mt.uc / mt.c;
+      return {type:mt, ultra, mult:ultra?mt.um:mt.bm, discovered:false};
+    }
+  }
+  return null;
+}
+
+// ────────────────────────────────────────
+//  PRICE ENGINE
+// ────────────────────────────────────────
+function tickPrice(card) {
+  const arch = ARCHETYPES[card.archetype];
+  const p = card.ap;
+  let dm = arch.db;
+
+  switch(card.archetype) {
+    case 'slowClimb':
+      dm = arch.db * (1 + p*.6);
+      if (p > .75) dm -= .004;
+      break;
+    case 'earlySpike':
+      dm = p < arch.peakAt ? arch.db*(1+p*3.5) : arch.db*(1-(p-arch.peakAt)*5)*arch.fadeTo;
+      break;
+    case 'doubleSpike':
+      if (p < arch.s1) dm = arch.db*(1+p*4.5);
+      else if (p < arch.s1+.1) dm = -.018; // first crash
+      else if (p < arch.s2) dm = arch.db*.4; // fake stability trap
+      else if (p < arch.s2+.11) dm = arch.db*(1+(p-arch.s2)*9);
+      else dm = -.028; // final dump
+      break;
+    case 'parabolicCrash':
+      if (p < arch.crashAt) {
+        dm = arch.db * Math.exp(p*2.8);
+        card.isBubble = p > arch.crashAt - .12;
+      } else {
+        dm = -(arch.severity*.05);
+        card.isBubble = false;
+      }
+      break;
+  }
+
+  // Event multiplier (stacked, capped at 3×)
+  let evMult = 1;
+  for (const ev of activeEvents) {
+    const hit = ev.tag==='any' || card.tags.includes(ev.tag) || (ev.tag==='misprint'&&card.misprint&&card.mpDisc) || (ev.tag==='legendary'&&(card.rarity==='legendary'||card.rarity==='mythic'));
+    if (hit) evMult = Math.min(evMult * ev.dm, 4);
+  }
+
+  card.hype *= .965;
+  dm += card.hype * card.hypeSens;
+
+  // Fat-tail noise
+  let noise = (Math.random()-.5) * card.volBase;
+  if (Math.random() < .025) noise *= 4;
+
+  // Reprint shock
+  if (Math.random() < card.reprintRisk * .008) dm -= .04;
+
+  // Misprint boost post-discovery
+  if (card.misprint && card.mpDisc) dm += (card.misprint.mult-1)*.008;
+
+  // Dead cat bounce
+  const drop = (card.prevPrice - card.price) / card.prevPrice;
+  if (drop > .1 && Math.random() < .28) { card.hype += .12; addTicker(`${card.name} bouncing after drop — is this the floor?`); }
+
+  const decayF = arch.decay * (card.price / card.basePrice) * .12;
+  let np = card.price * (1 + dm*evMult + noise - decayF);
+
+  // Soft floor/cap
+  np = Math.max(card.basePrice * .10, Math.min(card.basePrice * 55, np));
+
+  card.prevPrice = card.price;
+  card.price = np;
+  card.volume += Math.abs(np - card.prevPrice) * 10;
+
+  if (np > card.allTimeHigh) card.allTimeHigh = np;
+  if (np < card.allTimeLow) card.allTimeLow = np;
+
+  card.ap += .0025 + Math.random()*.002;
+  if (card.ap > 1) { card.ap=0; card.isBubble=false; card.demand=.8+Math.random()*.4; }
+
+  hist[t.id] && null; // placeholder
+  hist[card.id].push(np);
+  if (hist[card.id].length > 360) hist[card.id].shift();
+
+  // Misprint discovery timer
+  if (card.misprint && !card.mpDisc) {
+    card.mpTimer--;
+    if (card.mpTimer <= 0) discoverMisprint(card);
+  }
+
+  // Hold timer tracking
+  if (inv[card.id] && inv[card.id].qty > 0) {
+    G.holdTimers[card.id] = (G.holdTimers[card.id]||0) + 1;
+    if (card.rarity==='legendary' && G.holdTimers[card.id]>=200) checkAch('hodler', 1);
+  }
+
+  // Peak sell detection
+  if (card.ap > .95 && inv[card.id]?.qty > 0) {
+    // Near peak — autoalert
+    if (hasT('autoalert')) showNotif('NEAR PEAK DETECTED', `${card.name} approaching archetype peak — consider selling`, 'special');
+  }
+
+  // Auto-alert price surge
+  if (hasT('autoalert') && np > card.prevPrice * 1.3) {
+    showNotif('PRICE SURGE', `${card.name} +30%+ spike!`, 'bull');
+  }
+
+  // Check price alerts
+  checkPriceAlerts(card);
+
+  // Update sealed box values
+  SEALED_BOXES.forEach(sb => {
+    if (sb.currentValue && sb.owned > 0) {
+      const drift = 1 + (dm * evMult * .1) - (sb.decayRate * .5);
+      sb.currentValue *= drift;
+    }
+  });
+}
+
+function checkPriceAlerts(card) {
+  G.priceAlerts = G.priceAlerts.filter(a => {
+    if (a.cardId !== card.id) return true;
+    if (a.dir==='above' && card.price >= a.target) {
+      addAlert(`🔔 ALERT: ${card.name} reached $${fmtP(card.price)} (target: $${a.target})`, 'ev');
+      showNotif('PRICE ALERT HIT', `${card.name} above $${a.target}`, 'bull');
+      alertNewCount++; updateAlertDot();
+      return false;
+    }
+    if (a.dir==='below' && card.price <= a.target) {
+      addAlert(`🔔 ALERT: ${card.name} dropped to $${fmtP(card.price)} (target: $${a.target})`, 'sell');
+      showNotif('STOP-LOSS ALERT', `${card.name} below $${a.target}`, 'bear');
+      alertNewCount++; updateAlertDot();
+      return false;
+    }
+    return true;
+  });
+}
+
+function discoverMisprint(card) {
+  card.mpDisc = true;
+  const m = card.misprint;
+  const evBoost = activeEvents.filter(e=>e.id==='collector_disc').length > 0 ? 2 : 1;
+  const cd = (card.collectorAppeal/100) * evBoost;
+  const finalMult = m.mult * cd;
+  card.hype += finalMult * .12;
+
+  const msg = m.ultra
+    ? `⚠ ULTRA RARE MISPRINT! ${card.name} [${m.type.name}] authenticated — ×${finalMult.toFixed(1)} value multiplier`
+    : `⚠ Error variant found: ${card.name} [${m.type.name}] — collector interest rising`;
+
+  addAlert(msg, 'mp');
+  showNotif(m.ultra?'ULTRA MISPRINT DISCOVERED!':'MISPRINT DISCOVERED', msg, m.ultra?'special':'bull');
+  addTicker(msg);
+  checkAch('misprinter', 1);
+  if (m.ultra) checkAch('ultraerror', 1);
+}
+
+// ────────────────────────────────────────
+//  EVENT ENGINE
+// ────────────────────────────────────────
+function maybeEvent() {
+  if (evCooldown > 0) { evCooldown--; return; }
+  if (Math.random() > .012) return;
+
+  const ev = MARKET_EVENTS[Math.floor(Math.random()*MARKET_EVENTS.length)];
+  if (activeEvents.length >= 2) activeEvents.shift();
+
+  const aev = {...ev, remaining:ev.dur};
+  activeEvents.push(aev);
+
+  Object.values(cards).forEach(c => {
+    const hit = ev.tag==='any' || c.tags.includes(ev.tag) || (ev.tag==='misprint'&&c.misprint&&c.mpDisc);
+    if (hit) c.hype += (ev.dm-1)*.25;
+  });
+
+  showNotif(ev.name, ev.desc, ev.type);
+  addAlert(`📢 EVENT: ${ev.name} — ${ev.desc}`, 'ev');
+  addTicker(`🔥 ${ev.name}: ${ev.desc}`);
+  evCooldown = 18 + Math.floor(Math.random()*28);
+  alertNewCount++; updateAlertDot();
+}
+
+function tickEvents() {
+  activeEvents = activeEvents.filter(ev => { ev.remaining--; return ev.remaining > 0; });
+  document.getElementById('tb-evs').textContent = activeEvents.length ? activeEvents.map(e=>e.name.split(' ')[0]).join(', ') : 'NONE';
+  document.getElementById('tb-evs').style.color = activeEvents.length ? 'var(--amber)' : 'var(--text-d)';
+}
+
+// Market rotation stabilizer
+function marketRotation() {
+  if (G.tick % 100 === 0) {
+    const sorted = Object.values(cards).sort((a,b) => (b.price/b.basePrice)-(a.price/a.basePrice));
+    sorted.slice(0,4).forEach(c => { c.demand *= .82; });
+    sorted.slice(-4).forEach(c => { c.demand *= 1.18; c.hype += .04; });
+    addTicker('Market rotation: overvalued cards deflating, undervalued getting attention.');
+  }
+  // Sealed box decay
+  if (G.tick % 30 === 0) {
+    SEALED_BOXES.forEach(sb => {
+      if (sb.owned > 0) sb.currentValue *= (1 - sb.decayRate * 2);
+    });
+  }
+}
+
+// ────────────────────────────────────────
+//  MAIN TICK
+// ────────────────────────────────────────
+function gameTick() {
+  G.tick++;
+  document.getElementById('tb-tick').textContent = G.tick;
+  maybeEvent(); tickEvents(); marketRotation();
+  Object.values(cards).forEach(tickPrice);
+
+  // Net worth tracking
+  const nw = getNetWorth();
+  portHistory.push(nw);
+  if (portHistory.length > 120) portHistory.shift();
+  checkAch('bigballer', nw);
+  checkAch('whale', nw);
+
+  // Watcher achievement
+  checkAch('watcher', G.watchlist.size);
+  checkAch('collector', Object.values(inv).filter(p=>p.qty>0).length);
+
+  updateMarketList();
+  if (G.sel) updateDetailPanel();
+  updateTopBar();
+  updateInvPanel();
+  updateStats();
+  updateScannerPanel();
+  rotateTicker();
+}
+
+// ────────────────────────────────────────
+//  BUY / SELL
+// ────────────────────────────────────────
+function fee() { return hasT('lowfee') ? .005 : .02; }
+function hasT(id) { const t=TOOLS.find(t=>t.id===id); return t && G.rank>=t.rk; }
+
+function buyCard() {
+  const c = cards[G.sel]; if (!c) return;
+  const qty = G.qty;
+  const total = c.price * qty * (1+fee());
+  if (total > G.money) { addAlert('Insufficient funds!','ev'); showNotif('DECLINED','Not enough cash.','bear'); return; }
+  G.money -= total;
+  if (!inv[c.id]) inv[c.id] = {qty:0, avgCost:0, gradeScore:null, gradeBonus:1};
+  const pos = inv[c.id];
+  pos.avgCost = (pos.avgCost*pos.qty + c.price*qty) / (pos.qty+qty);
+  pos.qty += qty;
+  addAlert(`Bought ${c.name} ×${qty} @ $${fmtP(c.price)} | Fee: $${(c.price*qty*fee()).toFixed(2)}`, 'buy');
+  checkAch('firstbuy', G.trades+1);
+  updateDetailPanel(); updateInvPanel(); updateTopBar();
+}
+
+function sellCard() {
+  const c = cards[G.sel]; if (!c) return;
+  const pos = inv[c.id]; if (!pos||pos.qty<=0) return;
+  const qty = Math.min(G.qty, pos.qty);
+  const gradeBonus = pos.gradeScore ? (1 + pos.gradeScore/100*.5) : 1; // graded cards sell for more
+  const gross = c.price * qty * (1-fee()) * gradeBonus;
+  const profit = gross - pos.avgCost * qty;
+
+  // Peak sell check
+  if (c.ap > .88) { G.peaksells++; checkAch('bubblesurf',1); }
+
+  G.money += gross;
+  G.pnl += profit;
+  pos.qty -= qty;
+  if (pos.qty <= 0) { delete inv[c.id]; delete G.holdTimers[c.id]; }
+  G.trades++; if (profit>0) G.wins++;
+  if (profit > G.bestFlip) G.bestFlip = profit;
+  if (profit < G.worstFlip) G.worstFlip = profit;
+
+  // XP = sqrt(|profit|) × 12 × (1 + rarityBonus)
+  const xp = Math.round(Math.sqrt(Math.abs(profit)) * 12 * (1 + RARITY_MULTS[c.rarity]*.08));
+  gainXP(xp);
+  checkAch('kflipper', profit > 0 ? profit : 0);
+  checkAch('traderx', G.trades); checkAch('sharkmode', G.trades);
+
+  tradeHist.unshift({type:'sell', name:c.name, qty, price:c.price, profit, tick:G.tick, rarity:c.rarity});
+  if (tradeHist.length > 100) tradeHist.pop();
+
+  addAlert(`Sold ${c.name} ×${qty} @ $${fmtP(c.price)}${gradeBonus>1?' [GRADED +'+((gradeBonus-1)*100).toFixed(0)+'%]':''} | P&L: ${profit>=0?'+':''}$${profit.toFixed(2)}`, profit>=0?'buy':'sell');
+  updateDetailPanel(); updateInvPanel(); updateTopBar(); updateStats();
+  renderTradeHistory();
+}
+
+function adjQty(d) {
+  G.qty = Math.max(1, Math.min(99, G.qty+d));
+  document.getElementById('t-qty').textContent = G.qty;
+}
+
+function toggleWatch() {
+  if (!G.sel) return;
+  if (G.watchlist.has(G.sel)) G.watchlist.delete(G.sel);
+  else G.watchlist.add(G.sel);
+  updateDetailPanel(); updateMarketList();
+  document.getElementById('st-watch').textContent = G.watchlist.size;
+}
+
+// ────────────────────────────────────────
+//  PACK SYSTEM
+// ────────────────────────────────────────
+function openPack(packId) {
+  const pack = PACKS.find(p=>p.id===packId);
+  if (!pack || G.money < pack.cost) { addAlert('Insufficient funds!','ev'); return; }
+  G.money -= pack.cost; G.packs++;
+  document.getElementById('st-packs').textContent = G.packs;
+
+  const pulled = [];
+  let gDone = {epic:false, rare:false, legend:false};
+
+  for (let i = 0; i < pack.cards; i++) {
+    let rarity = rollRarity(pack.rates);
+    if (pack.gEpic && i===pack.cards-1 && !gDone.epic && !pulled.some(c=>['epic','legendary','mythic'].includes(c.rarity))) rarity='epic';
+    if (pack.gRare && i===pack.cards-1 && !pulled.some(c=>c.rarity!=='common')) rarity='rare';
+    if (pack.gLegend && i===pack.cards-1 && !pulled.some(c=>['legendary','mythic'].includes(c.rarity))) rarity='legendary';
+
+    let pool = CARD_TEMPLATES.filter(t=>t.rarity===rarity);
+    if (pack.vintageFocus && pool.length) pool = pool.filter(t=>t.tags.includes('vintage')) || pool;
+    if (pack.compFocus && pool.length) pool = pool.filter(t=>t.tags.includes('competitive')) || pool;
+    const tmpl = pool[Math.floor(Math.random()*pool.length)];
+    const card = cards[tmpl.id];
+
+    const mBonus = pack.mBonus * (hasT('mhunt') ? 1.5 : 1);
+    const mp = rollMisprint(mBonus);
+
+    pulled.push({...card, pullMp: mp});
+
+    if (!inv[card.id]) inv[card.id] = {qty:0, avgCost:0, gradeScore:null, gradeBonus:1};
+    const pos = inv[card.id];
+    const eprice = mp ? card.price * mp.mult * (card.collectorAppeal/100) : card.price;
+    pos.avgCost = (pos.avgCost*pos.qty + eprice) / (pos.qty+1);
+    pos.qty++;
+
+    if (mp && !card.misprint) { card.misprint = mp; card.mpTimer = 40+Math.floor(Math.random()*80); }
+  }
+
+  checkAch('firstpack', G.packs); checkAch('packaddict', G.packs);
+  gainXP(Math.round(pack.cost*.12));
+  showPackModal(pack, pulled);
+  updateTopBar(); updateInvPanel();
+}
+
+function rollRarity(rates) {
+  let r = Math.random(), cum = 0;
+  for (const [k,v] of Object.entries(rates)) { cum+=v; if(r<cum) return k; }
+  return 'common';
+}
+
+// ────────────────────────────────────────
+//  SEALED BOX SYSTEM
+// ────────────────────────────────────────
+function buySealedBox(id) {
+  const sb = SEALED_BOXES.find(s=>s.id===id);
+  if (!sb) return;
+  const cost = sb.currentValue * .95; // slight discount to buy
+  if (G.money < cost) { addAlert('Insufficient funds for sealed box!','ev'); return; }
+  G.money -= cost; sb.owned++;
+  addAlert(`Bought sealed box: ${sb.name} @ $${fmtP(cost)}`, 'buy');
+  showNotif('SEALED BOX PURCHASED', `${sb.name} — hodl for appreciation!`, 'bull');
+  renderSealedBoxes(); updateTopBar();
+}
+
+function openSealedBox(id) {
+  const sb = SEALED_BOXES.find(s=>s.id===id);
+  if (!sb || sb.owned <= 0) return;
+  sb.owned--;
+  addAlert(`Opening sealed box: ${sb.name}`, 'ev');
+  // Open equivalent packs
+  const pack = PACKS.find(p=>p.id===sb.packId);
+  for (let i = 0; i < Math.min(sb.qty/6, 6); i++) {
+    setTimeout(() => { if(G.money >= 0) openPack(sb.packId); else { /* open free */ } }, i*100);
+  }
+  G.sealedsold++; checkAch('sealedbox', 1);
+  renderSealedBoxes(); updateTopBar();
+}
+
+function sellSealedBox(id) {
+  const sb = SEALED_BOXES.find(s=>s.id===id);
+  if (!sb || sb.owned <= 0) return;
+  const profit = sb.currentValue - sb.baseValue * .95;
+  G.money += sb.currentValue; sb.owned--;
+  if (profit > 0) G.sealedsold++;
+  checkAch('sealedbox', 1);
+  addAlert(`Sold sealed box: ${sb.name} @ $${fmtP(sb.currentValue)} | P&L: ${profit>=0?'+':''}$${profit.toFixed(0)}`, profit>=0?'buy':'sell');
+  renderSealedBoxes(); updateTopBar();
+}
+
+// ────────────────────────────────────────
+//  CARD GRADING
+// ────────────────────────────────────────
+function gradeCard() {
+  const card = cards[G.sel]; if (!card) return;
+  const pos = inv[card.id]; if (!pos || pos.qty <= 0) { addAlert('You must own this card to grade it.','ev'); return; }
+  const cost = hasT('gradebot') ? 0 : 50;
+  if (G.money < cost) { addAlert('Not enough cash to grade!','ev'); return; }
+  G.money -= cost;
+
+  // Grade calculation: based on rarity, collector appeal, age (lower cost = newer printing)
+  const base = 5 + Math.random() * 5; // 5.0–10.0
+  const appealBonus = (card.collectorAppeal / 100) * 2;
+  const rawScore = Math.min(10, base + appealBonus * .3);
+  const gradeScore = Math.round(rawScore * 10) / 10;
+
+  pos.gradeScore = gradeScore;
+  G.graded++;
+  document.getElementById('st-graded').textContent = G.graded;
+  checkAch('grader', G.graded);
+  gainXP(30 + Math.round(gradeScore * 10));
+
+  // Graded cards get resale bonus based on score
+  const multiplier = gradeScore >= 9.5 ? 2.0 : gradeScore >= 9.0 ? 1.5 : gradeScore >= 8.0 ? 1.2 : gradeScore >= 6.0 ? 1.05 : 0.9;
+  pos.gradeBonus = multiplier;
+
+  const gradeLabel = gradeScore >= 9.5 ? 'GEM MINT' : gradeScore >= 9.0 ? 'MINT' : gradeScore >= 8.5 ? 'NEAR MINT' : gradeScore >= 7.5 ? 'EX-MINT' : gradeScore >= 6.0 ? 'EXCELLENT' : 'VERY GOOD';
+  const colors = {10:'#ffd700',9.5:'#ffd700',9:'#00e87a',8.5:'#3a7fff',7.5:'#9030ff',6:'#ffaa00',0:'#ff3050'};
+  const scoreColor = gradeScore>=9.5?colors[9.5]:gradeScore>=9?colors[9]:gradeScore>=8.5?colors[8.5]:gradeScore>=7.5?colors[7.5]:gradeScore>=6?colors[6]:colors[0];
+
+  document.getElementById('grade-result').innerHTML = `
+    <div class="grade-result">
+      <div class="grade-score" style="color:${scoreColor}">${gradeScore.toFixed(1)}</div>
+      <div class="grade-label">${gradeLabel}</div>
+      <div style="font-size:11px;color:var(--text-d);margin-bottom:8px">${card.name} — Graded by ErrorMint Registry</div>
+      <div class="grade-mult">Resale multiplier: ×${multiplier.toFixed(2)}</div>
+      <div style="font-family:var(--fm);font-size:9px;color:var(--text-d);margin-top:10px">
+        Collector Appeal: ${card.collectorAppeal.toFixed(0)}/100 &nbsp;|&nbsp;
+        Print Run: ${card.printRun.toLocaleString()} &nbsp;|&nbsp;
+        Raw Score: ${rawScore.toFixed(2)}
+      </div>
+    </div>`;
+  document.getElementById('grade-modal').classList.remove('hid');
+  addAlert(`Graded: ${card.name} — ${gradeScore.toFixed(1)} ${gradeLabel} (×${multiplier.toFixed(2)} resale)`, 'mp');
+  updateInvPanel(); updateTopBar();
+}
+
+// ────────────────────────────────────────
+//  PRICE ALERTS
+// ────────────────────────────────────────
+function openAlertModal() {
+  if (!G.sel) return;
+  const c = cards[G.sel];
+  document.getElementById('pal-card-name').textContent = `${c.name} — Current: $${fmtP(c.price)}`;
+  document.getElementById('pal-above-inp').value = '';
+  document.getElementById('pal-below-inp').value = '';
+  document.getElementById('pal-modal').classList.remove('hid');
+}
+function closePAM() { document.getElementById('pal-modal').classList.add('hid'); }
+function addPriceAlert(dir) {
+  if (!G.sel) return;
+  const inp = document.getElementById(`pal-${dir}-inp`);
+  const val = parseFloat(inp.value);
+  if (isNaN(val) || val <= 0) { addAlert('Invalid price for alert.','ev'); return; }
+  G.priceAlerts.push({cardId:G.sel, dir, target:val, name:cards[G.sel].name});
+  addAlert(`Price alert set: ${cards[G.sel].name} ${dir==='above'?'above':'below'} $${val}`, 'ev');
+  inp.value='';
+  renderPriceAlerts();
+  swTab('alerts');
+}
+function removePriceAlert(i) { G.priceAlerts.splice(i,1); renderPriceAlerts(); }
+function renderPriceAlerts() {
+  const el = document.getElementById('pal-list');
+  if (!G.priceAlerts.length) { el.innerHTML='<div class="emp" style="padding:8px">No price alerts set.</div>'; return; }
+  el.innerHTML = G.priceAlerts.map((a,i)=>`
+    <div class="pal-i">
+      <div><div class="pal-info">${a.name}</div><div class="pal-price">${a.dir==='above'?'≥':'≤'} $${a.target}</div></div>
+      <button class="pal-del" onclick="removePriceAlert(${i})">✕</button>
+    </div>`).join('');
+}
+function updateAlertDot() {
+  const dot = document.getElementById('alert-dot');
+  dot.style.display = alertNewCount > 0 ? 'inline-block' : 'none';
+}
+
+// ────────────────────────────────────────
+//  XP & RANK
+// ────────────────────────────────────────
+function gainXP(a) {
+  G.xp += a;
+  const next = RANKS[G.rank+1];
+  if (next && G.xp >= next.xp) {
+    G.rank++;
+    showNotif('RANK UP!', `You are now: ${RANKS[G.rank].name}`, 'special');
+    addAlert(`🎖 RANK UP → ${RANKS[G.rank].name}!`, 'ach');
+    renderTools();
+  }
+  updateXP();
+}
+function updateXP() {
+  const cur = RANKS[G.rank], nxt = RANKS[G.rank+1];
+  const xInR = G.xp - cur.xp, xNeed = nxt ? nxt.xp - cur.xp : 1;
+  const pct = nxt ? Math.min(100,(xInR/xNeed)*100) : 100;
+  document.getElementById('xp-bar').style.width = pct+'%';
+  document.getElementById('xp-txt').textContent = nxt ? `${G.xp}/${nxt.xp}` : 'MAX';
+  document.getElementById('tb-rank').textContent = cur.name;
+  document.getElementById('tb-rank').style.color = cur.color;
+}
+
+// ────────────────────────────────────────
+//  ACHIEVEMENTS
+// ────────────────────────────────────────
+function checkAch(id, val) {
+  if (G.achDone.has(id)) return;
+  const a = ACHIEVEMENTS.find(a=>a.id===id); if (!a) return;
+  G.achProg[id] = Math.max(G.achProg[id]||0, a.type==='networth'?val:Math.min(val,a.goal));
+  if (G.achProg[id] >= a.goal) {
+    G.achDone.add(id);
+    gainXP(a.xp);
+    showNotif(`ACHIEVEMENT: ${a.name}`, a.desc, 'special');
+    addAlert(`🏆 Achievement unlocked: ${a.name} (+${a.xp} XP)`, 'ach');
+    alertNewCount++; updateAlertDot();
+    renderAchievements();
+  }
+}
+
+// ────────────────────────────────────────
+//  CHART
+// ────────────────────────────────────────
+function updateChart() {
+  const canvas = document.getElementById('chart-canvas');
+  const container = document.getElementById('price-chart');
+  if (!container.clientWidth) return;
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if (!G.sel) return;
+
+  const history = hist[G.sel]; const card = cards[G.sel];
+  if (!history||history.length<2) return;
+  const w=canvas.width, h=canvas.height;
+  const pad={t:14,r:14,b:26,l:56};
+  const cw=w-pad.l-pad.r, ch=h-pad.t-pad.b;
+  const minP=Math.min(...history)*.96, maxP=Math.max(...history)*1.04;
+  const rng=maxP-minP||1;
+  const tx=i=>pad.l+(i/(history.length-1))*cw;
+  const ty=v=>pad.t+ch-((v-minP)/rng)*ch;
+
+  // Grid
+  ctx.strokeStyle='#1a1e2e'; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=pad.t+(i/4)*ch;
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();
+    const v=maxP-(i/4)*rng;
+    ctx.fillStyle='#485070'; ctx.font='9px Share Tech Mono';ctx.textAlign='right';
+    ctx.fillText('$'+fmtP(v), pad.l-4, y+3);
+  }
+  // Vertical grid
+  for(let i=0;i<=4;i++){
+    const x=pad.l+(i/4)*cw;
+    ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+ch);ctx.stroke();
+  }
+
+  const lineColor = card.price >= card.openPrice ? '#00e87a' : '#ff3050';
+  // Area fill
+  const grad=ctx.createLinearGradient(0,pad.t,0,h-pad.b);
+  grad.addColorStop(0,lineColor+'35'); grad.addColorStop(1,'transparent');
+  ctx.beginPath(); ctx.moveTo(tx(0),ty(history[0]));
+  for(let i=1;i<history.length;i++) ctx.lineTo(tx(i),ty(history[i]));
+  ctx.lineTo(tx(history.length-1),h-pad.b); ctx.lineTo(tx(0),h-pad.b); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+
+  // Volume bars (if advanced charts)
+  if (hasT('advchart')) {
+    const maxVol = 50;
+    for(let i=0;i<history.length-1;i+=3){
+      const bh = (4 + Math.random()*16);
+      ctx.fillStyle = history[i+1]>history[i] ? '#00e87a18' : '#ff305018';
+      ctx.fillRect(tx(i), h-pad.b-bh, cw/history.length*3-.5, bh);
+    }
+  }
+
+  // Price line
+  ctx.beginPath(); ctx.strokeStyle=lineColor; ctx.lineWidth=1.8;
+  ctx.shadowColor=lineColor; ctx.shadowBlur=5;
+  ctx.moveTo(tx(0),ty(history[0]));
+  for(let i=1;i<history.length;i++) ctx.lineTo(tx(i),ty(history[i]));
+  ctx.stroke(); ctx.shadowBlur=0;
+
+  // MA-20 line
+  if (hasT('advchart') && history.length > 20) {
+    ctx.beginPath(); ctx.strokeStyle='#ffaa0090'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    for(let i=20;i<history.length;i++){
+      const avg=history.slice(i-20,i).reduce((s,v)=>s+v,0)/20;
+      i===20?ctx.moveTo(tx(i),ty(avg)):ctx.lineTo(tx(i),ty(avg));
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // RSI indicator (simplified bar on bottom)
+  if (hasT('advchart') && history.length > 14) {
+    const gains=[], losses=[];
+    for(let i=1;i<=14;i++){const d=history[history.length-i]-history[history.length-i-1];d>=0?gains.push(d):losses.push(Math.abs(d));}
+    const avgG=gains.reduce((s,v)=>s+v,0)/14||.001;
+    const avgL=losses.reduce((s,v)=>s+v,0)/14||.001;
+    const rsi=100-(100/(1+avgG/avgL));
+    const rsiColor=rsi>70?'#ff3050':rsi<30?'#00e87a':'#ffaa00';
+    ctx.fillStyle=rsiColor+'60';
+    ctx.fillRect(w-pad.r-36, pad.t+2, 36, 10);
+    ctx.fillStyle=rsiColor; ctx.font='8px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillText('RSI '+rsi.toFixed(0), w-pad.r-18, pad.t+10);
+  }
+
+  // Bubble warning overlay
+  if (card.isBubble && hasT('advchart')) {
+    ctx.fillStyle='rgba(255,48,80,.06)'; ctx.fillRect(pad.l,pad.t,cw,ch);
+    ctx.fillStyle='#ff3050'; ctx.font='bold 9px Share Tech Mono'; ctx.textAlign='center';
+    ctx.fillText('⚠ BUBBLE RISK DETECTED', w/2, pad.t+12);
+  }
+
+  // Entry price line
+  const pos = inv[G.sel];
+  if (pos?.qty > 0 && pos.avgCost>=minP && pos.avgCost<=maxP) {
+    const ey=ty(pos.avgCost);
+    ctx.beginPath(); ctx.strokeStyle='#ffaa0090'; ctx.lineWidth=1; ctx.setLineDash([5,3]);
+    ctx.moveTo(pad.l,ey); ctx.lineTo(w-pad.r,ey); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#ffaa00'; ctx.font='8px Share Tech Mono'; ctx.textAlign='left';
+    ctx.fillText('ENTRY $'+fmtP(pos.avgCost), pad.l+3, ey-3);
+  }
+
+  // ATH line
+  if (card.allTimeHigh >= minP && card.allTimeHigh <= maxP && hasT('advchart')) {
+    const ay=ty(card.allTimeHigh);
+    ctx.beginPath(); ctx.strokeStyle='rgba(255,215,0,.4)'; ctx.lineWidth=.8; ctx.setLineDash([3,6]);
+    ctx.moveTo(pad.l,ay); ctx.lineTo(w-pad.r,ay); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#ffd70080'; ctx.font='7px Share Tech Mono'; ctx.textAlign='right';
+    ctx.fillText('ATH', w-pad.r-2, ay-2);
+  }
+
+  // Current price dot
+  const lx=tx(history.length-1), ly=ty(history[history.length-1]);
+  ctx.beginPath(); ctx.arc(lx,ly,3,0,Math.PI*2);
+  ctx.fillStyle=lineColor; ctx.shadowColor=lineColor; ctx.shadowBlur=10; ctx.fill(); ctx.shadowBlur=0;
+
+  // Time labels
+  ctx.fillStyle='#485070'; ctx.font='8px Share Tech Mono'; ctx.textAlign='center';
+  ctx.fillText('NOW', lx, h-8);
+  ctx.fillText(`-${history.length}s`, pad.l+8, h-8);
+
+  // Chart indicators
+  const inds = document.getElementById('ch-inds'); inds.innerHTML='';
+  if (card.isBubble && hasT('advchart')) inds.appendChild(mkInd('BUBBLE','r'));
+  if (pos?.gradeScore) inds.appendChild(mkInd('PSA '+pos.gradeScore.toFixed(1),'p'));
+  activeEvents.filter(ev=>ev.tag==='any'||card.tags.includes(ev.tag)).forEach(ev=>inds.appendChild(mkInd(ev.name.split(' ')[0],ev.type==='bull'?'g':'r')));
+  if (hasT('advchart')) inds.appendChild(mkInd('MA20','a'));
+  if (card.misprint?.discovered||card.mpDisc) inds.appendChild(mkInd('ERR','p'));
+}
+
+function mkInd(t,c){const e=document.createElement('span');e.className=`ci2 ci-${c}`;e.textContent=t;return e;}
+
+function updatePortChart() {
+  const canvas = document.getElementById('port-chart');
+  if (!canvas.parentElement?.clientWidth) return;
+  canvas.width = canvas.parentElement.clientWidth - 12;
+  const ctx = canvas.getContext('2d');
+  const w=canvas.width, h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  if (portHistory.length < 2) return;
+  const mn=Math.min(...portHistory)*.97, mx=Math.max(...portHistory)*1.03;
+  const rng=mx-mn||1;
+  const tx=i=>4+(i/(portHistory.length-1))*(w-8);
+  const ty=v=>4+((h-8)-(((v-mn)/rng)*(h-8)));
+  const lc=portHistory[portHistory.length-1]>=portHistory[0]?'#00e87a':'#ff3050';
+  const grad=ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,lc+'30');grad.addColorStop(1,'transparent');
+  ctx.beginPath();ctx.moveTo(tx(0),ty(portHistory[0]));
+  portHistory.forEach((_,i)=>{if(i)ctx.lineTo(tx(i),ty(portHistory[i]));});
+  ctx.lineTo(tx(portHistory.length-1),h);ctx.lineTo(tx(0),h);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();ctx.strokeStyle=lc;ctx.lineWidth=1.5;ctx.shadowColor=lc;ctx.shadowBlur=4;
+  ctx.moveTo(tx(0),ty(portHistory[0]));
+  portHistory.forEach((_,i)=>{if(i)ctx.lineTo(tx(i),ty(portHistory[i]));});
+  ctx.stroke();ctx.shadowBlur=0;
+  ctx.fillStyle='#485070';ctx.font='8px Share Tech Mono';ctx.textAlign='left';
+  ctx.fillText('NET WORTH',4,h-4);
+  ctx.textAlign='right';
+  ctx.fillStyle=lc;
+  ctx.fillText('$'+fmtBig(portHistory[portHistory.length-1]),w-4,h-4);
+}
+
+// ────────────────────────────────────────
+//  CARD ART (detail view)
+// ────────────────────────────────────────
+function drawDetailArt(card) {
+  const canvas = document.getElementById('ca-canvas');
+  const ctx = canvas.getContext('2d');
+  ArtRenderer.draw(ctx, card, 80, 110);
+  document.getElementById('ca-glow').style.background = `radial-gradient(circle,${card.artFg}50,transparent 70%)`;
+  document.getElementById('ca-wrap').style.borderColor = RARITY_COLORS[card.rarity];
+}
+
+// ────────────────────────────────────────
+//  PACK MODAL
+// ────────────────────────────────────────
+function showPackModal(pack, pulledCards) {
+  document.getElementById('pm-title').textContent = `${pack.name.toUpperCase()} — ${pack.cards} CARDS`;
+  const rv = document.getElementById('pack-reveal'); rv.innerHTML='';
+
+  let totalValue = 0;
+  pulledCards.forEach((card, i) => {
+    const el = document.createElement('div');
+    el.className = 'rv-card';
+    el.style.cssText = `border-color:${RARITY_COLORS[card.rarity]};animation-delay:${i*.13}s`;
+
+    // Create canvas for card art
+    const cvs = document.createElement('canvas');
+    cvs.className = 'rv-canvas';
+    cvs.width = 84; cvs.height = 115;
+    const ctx = cvs.getContext('2d');
+    ArtRenderer.draw(ctx, card, 84, 115);
+    el.appendChild(cvs);
+
+    if (card.pullMp) {
+      const mt = document.createElement('div');
+      mt.className = 'rv-mp-tag';
+      mt.textContent = (card.pullMp.ultra?'★ ULTRA ':'')+'ERR:'+card.pullMp.type.code;
+      el.appendChild(mt);
+    }
+
+    const inv_pos = inv[card.id];
+    if (inv_pos?.gradeScore) {
+      const gd = document.createElement('div');
+      gd.className = 'rv-grade';
+      gd.style.cssText = 'background:rgba(0,0,0,.6);color:var(--amber);border:1px solid var(--amber-d)';
+      gd.textContent = 'PSA '+inv_pos.gradeScore.toFixed(1);
+      el.appendChild(gd);
+    }
+
+    const nm = document.createElement('div'); nm.className='rv-name';
+    nm.style.color = RARITY_COLORS[card.rarity];
+    nm.textContent = card.name; el.appendChild(nm);
+
+    const pr = document.createElement('div'); pr.className='rv-price';
+    pr.textContent = '$'+fmtP(card.price); el.appendChild(pr);
+
+    totalValue += card.price;
+    rv.appendChild(el);
+  });
+
+  // EV summary
+  const ev_diff = totalValue - pack.cost;
+  const evEl = document.createElement('div');
+  evEl.style.cssText = 'font-family:var(--fm);font-size:10px;text-align:center;margin-top:8px;color:var(--text-d)';
+  evEl.innerHTML = `Pack cost: <b style="color:var(--amber)">$${pack.cost}</b> | Total value: <b style="color:${ev_diff>=0?'var(--green)':'var(--red)'}">$${totalValue.toFixed(2)}</b> | EV: <b style="color:${ev_diff>=0?'var(--green)':'var(--red)'}">${ev_diff>=0?'+':''}$${ev_diff.toFixed(2)}</b>`;
+  rv.appendChild(evEl);
+
+  document.getElementById('pack-modal').classList.remove('hid');
+}
+function closePM() { document.getElementById('pack-modal').classList.add('hid'); }
+
+// ────────────────────────────────────────
+//  UI UPDATES
+// ────────────────────────────────────────
+function updateMarketList() {
+  const list = document.getElementById('mkt-list');
+  let cardArr = Object.values(cards);
+
+  // Filter
+  if (G.filter==='misprint') cardArr = cardArr.filter(c=>c.misprint);
+  else if (G.filter==='watchlist') cardArr = cardArr.filter(c=>G.watchlist.has(c.id));
+  else if (G.filter==='gainers') cardArr = cardArr.filter(c=>c.price>c.prevPrice).slice(0,15);
+  else if (G.filter==='losers') cardArr = cardArr.filter(c=>c.price<c.prevPrice).slice(0,15);
+  else if (['common','rare','epic','legendary','mythic'].includes(G.filter)) cardArr=cardArr.filter(c=>c.rarity===G.filter);
+
+  // Sort
+  const pctChg = c => (c.price-c.prevPrice)/c.prevPrice;
+  if (G.sort==='change') cardArr.sort((a,b)=>pctChg(b)-pctChg(a));
+  else if (G.sort==='price') cardArr.sort((a,b)=>b.price-a.price);
+  else if (G.sort==='name') cardArr.sort((a,b)=>a.name.localeCompare(b.name));
+  else if (G.sort==='rarity') { const ro={common:0,rare:1,epic:2,legendary:3,mythic:4}; cardArr.sort((a,b)=>ro[b.rarity]-ro[a.rarity]); }
+  else if (G.sort==='volume') cardArr.sort((a,b)=>b.volume-a.volume);
+
+  list.innerHTML='';
+  cardArr.forEach(card => {
+    const pct = ((card.price-card.prevPrice)/card.prevPrice)*100;
+    const isUp = pct >= 0;
+    const row = document.createElement('div');
+    row.className = `mkt-row${G.sel===card.id?' sel':''}${G.watchlist.has(card.id)?' watch':''}`;
+
+    const mpTag = card.misprint ? `<span class="mt">${card.misprint.type.code}${card.mpDisc?'!':'?'}</span>` : '';
+    const wtTag = G.watchlist.has(card.id) ? `<span class="wt">★</span>` : '';
+    const volStr = hasT('vol') ? ({l:'LOW',m:'MED',h:'HI',e:'EXT'}[card.volBase<.03?'l':card.volBase<.06?'m':card.volBase<.12?'h':'e']) : '~';
+
+    row.innerHTML = `
+      <div class="rd dot-${card.rarity[0]}"></div>
+      <div class="rn">
+        <div class="rn-name">${card.name}${mpTag}${wtTag}</div>
+        <div class="rn-meta"><span class="rc-${card.rarity}">${card.rarity.toUpperCase()}</span><span>${volStr}</span>${card.isBubble?'<span style="color:var(--red);font-size:7px">BUBBLE</span>':''}</div>
+      </div>
+      <div class="rp-b">
+        <div class="rp">$${fmtP(card.price)}</div>
+        <div class="rc ${isUp?'up':'dn'}">${isUp?'+':''}${pct.toFixed(2)}%</div>
+      </div>`;
+    row.addEventListener('click', ()=>selectCard(card.id));
+    list.appendChild(row);
+  });
+}
+
+function selectCard(id) {
+  G.sel = id; G.qty = 1;
+  document.getElementById('t-qty').textContent = '1';
+  document.getElementById('no-sel').style.display='none';
+  document.getElementById('sel-detail').style.display='flex';
+  document.getElementById('cha-lbl').textContent = `PRICE HISTORY — ${cards[id].name.toUpperCase()}`;
+  updateDetailPanel(); updateMarketList(); drawDetailArt(cards[id]);
+}
+
+function updateDetailPanel() {
+  if (!G.sel) return;
+  const card = cards[G.sel]; const pos = inv[G.sel];
+
+  document.getElementById('d-name').textContent = card.name;
+  const rb = document.getElementById('d-rarity');
+  rb.textContent = card.rarity.toUpperCase() + ' · ' + GRAPH_ARCHETYPE_NAMES[card.archetype];
+  rb.className = `cr bg-${card.rarity[0]} rc-${card.rarity}`;
+
+  // Misprint
+  const mpRow = document.getElementById('d-misprint-row');
+  if (card.misprint) {
+    mpRow.style.display='block';
+    const lbl = document.getElementById('d-mp-lbl');
+    const disc = document.getElementById('d-mp-disc');
+    if (card.mpDisc) {
+      lbl.textContent = `⚠ ${card.misprint.type.name} [${card.misprint.ultra?'ULTRA':'BASE'}] ×${card.misprint.mult.toFixed(1)}`;
+      disc.textContent = 'AUTHENTICATED';
+      disc.style.color = 'var(--green)';
+    } else if (hasT('mhunt')) {
+      lbl.textContent = `⚠ Suspected: ${card.misprint.type.name}?`;
+      disc.textContent = 'UNCONFIRMED';
+      disc.style.color = 'var(--text-d)';
+    } else {
+      lbl.textContent = '⚠ Possible Error Variant';
+      disc.textContent = '';
+    }
+  } else mpRow.style.display='none';
+
+  // Stats
+  const sg = document.getElementById('d-stats');
+  sg.innerHTML = `
+    <div class="cs"><span class="csl">Meta Power</span><span class="csv">${card.metaPower.toFixed(0)}/100</span></div>
+    <div class="cs"><span class="csl">Collector Appeal</span><span class="csv">${card.collectorAppeal.toFixed(0)}/100</span></div>
+    <div class="cs"><span class="csl">Print Run</span><span class="csv">${card.printRun.toLocaleString()}</span></div>
+    <div class="cs"><span class="csl">Reprint Risk</span><span class="csv">${(card.reprintRisk*100).toFixed(1)}%</span></div>
+    <div class="cs"><span class="csl">Hype Sensitivity</span><span class="csv">${(card.hypeSens*100).toFixed(0)}%</span></div>
+    <div class="cs"><span class="csl">ATH / ATL</span><span class="csv" style="font-size:8px">$${fmtP(card.allTimeHigh)} / $${fmtP(card.allTimeLow)}</span></div>
+    ${pos?.gradeScore?`<div class="cs"><span class="csl">Grade Score</span><span class="csv" style="color:var(--amber)">PSA ${pos.gradeScore.toFixed(1)} ×${pos.gradeBonus.toFixed(2)}</span></div>`:''}
+    ${pos?.qty>0?`<div class="cs"><span class="csl">Holding</span><span class="csv" style="color:var(--cyan)">×${pos.qty} (avg $${fmtP(pos.avgCost)})</span></div>`:''}
+  `;
+
+  // Price
+  const pct = ((card.price - card.openPrice)/card.openPrice)*100;
+  document.getElementById('d-price').textContent = '$'+fmtP(card.price);
+  document.getElementById('d-price').style.color = RARITY_COLORS[card.rarity];
+  const cc = document.getElementById('d-chg');
+  cc.textContent = `${pct>=0?'+':''}${pct.toFixed(2)}% TODAY`;
+  cc.className = `pcc ${pct>=0?'up':'dn'}`;
+
+  // Buttons
+  const canBuy = G.money >= card.price*G.qty;
+  const canSell = pos && pos.qty >= G.qty;
+  document.getElementById('btn-buy').className = `btn btn-buy${canBuy?'':' btn-dis'}`;
+  document.getElementById('btn-sell').className = `btn btn-sell${canSell?'':' btn-dis'}`;
+  document.getElementById('btn-watch').textContent = G.watchlist.has(G.sel) ? '★ UNWATCH' : '★ WATCH';
+  document.getElementById('btn-grade').style.opacity = (pos?.qty>0) ? '1' : '.4';
+  document.getElementById('btn-grade').textContent = hasT('gradebot') ? 'GRADE THIS CARD (FREE)' : 'GRADE THIS CARD ($50)';
+}
+
+function updateTopBar() {
+  const invVal = Object.entries(inv).reduce((s,[id,p])=>s+(cards[id]?.price||0)*p.qty,0);
+  const nw = G.money + invVal;
+  document.getElementById('tb-money').textContent = '$'+fmtBig(G.money);
+  document.getElementById('tb-port').textContent = '$'+fmtBig(invVal);
+  document.getElementById('tb-net').textContent = '$'+fmtBig(nw);
+  const pnlEl = document.getElementById('tb-pnl');
+  pnlEl.textContent = `${G.pnl>=0?'+':''}$${Math.abs(G.pnl).toFixed(0)}`;
+  pnlEl.style.color = G.pnl>=0?'var(--green)':'var(--red)';
+  document.getElementById('tb-net').style.color = nw>=10000?'var(--text-b)':'var(--red)';
+}
+
+function updateInvPanel() {
+  const list = document.getElementById('inv-list');
+  const poss = Object.entries(inv).filter(([,p])=>p.qty>0);
+
+  // Portfolio stats
+  if (poss.length > 0) {
+    const totalCost = poss.reduce((s,[id,p])=>s+p.avgCost*p.qty,0);
+    const totalVal = poss.reduce((s,[id,p])=>s+(cards[id]?.price||0)*p.qty,0);
+    const totalPnl = totalVal - totalCost;
+    const topGainer = poss.sort((a,b)=>{
+      const pA=(cards[a[0]]?.price-a[1].avgCost)/a[1].avgCost;
+      const pB=(cards[b[0]]?.price-b[1].avgCost)/b[1].avgCost;
+      return pB-pA;
+    })[0];
+    document.getElementById('port-stats').innerHTML = `
+      <div class="pstat"><div class="pstat-l">Positions</div><div class="pstat-r" style="color:var(--cyan)">${poss.length}</div></div>
+      <div class="pstat"><div class="pstat-l">Total Cost Basis</div><div class="pstat-r">$${fmtBig(totalCost)}</div></div>
+      <div class="pstat"><div class="pstat-l">Portfolio Value</div><div class="pstat-r" style="color:var(--cyan)">$${fmtBig(totalVal)}</div></div>
+      <div class="pstat"><div class="pstat-l">Unrealized P&L</div><div class="pstat-r" style="color:${totalPnl>=0?'var(--green)':'var(--red)'}">${totalPnl>=0?'+':''}$${Math.abs(totalPnl).toFixed(2)}</div></div>
+      ${topGainer?`<div class="pstat"><div class="pstat-l">Top Gainer</div><div class="pstat-r" style="color:var(--green)">${cards[topGainer[0]]?.name||'-'}</div></div>`:''}
+    `;
+  } else {
+    document.getElementById('port-stats').innerHTML='';
+  }
+
+  if (!poss.length) { list.innerHTML='<div class="emp">No cards in portfolio.<br>Buy from market or open packs.</div>'; return; }
+
+  // Sort by unrealized P&L
+  poss.sort((a,b)=>{
+    const pa=(cards[a[0]]?.price-a[1].avgCost)*a[1].qty;
+    const pb=(cards[b[0]]?.price-b[1].avgCost)*b[1].qty;
+    return pb-pa;
+  });
+
+  list.innerHTML='';
+  poss.forEach(([id,pos])=>{
+    const card=cards[id]; if(!card) return;
+    const cv=card.price*pos.qty;
+    const pnl=cv-pos.avgCost*pos.qty;
+    const pct=(pnl/Math.max(pos.avgCost*pos.qty,.01))*100;
+    const el=document.createElement('div');
+    el.className='inv-i';
+    el.innerHTML=`
+      <div>
+        <div class="inv-name" style="color:${RARITY_COLORS[card.rarity]}">${card.name}${card.misprint&&card.mpDisc?` <span class="mt">${card.misprint.type.code}!</span>`:''}</div>
+        <div class="inv-meta">×${pos.qty} | Avg: $${fmtP(pos.avgCost)} | Now: $${fmtP(card.price)}${pos.gradeScore?` | PSA ${pos.gradeScore.toFixed(1)}`:''}</div>
+      </div>
+      <div class="inv-pnl ${pnl>=0?'pf':'lss'}">
+        ${pnl>=0?'+':''}$${Math.abs(pnl).toFixed(2)}<br>
+        <span style="font-size:8px">${pct>=0?'+':''}${pct.toFixed(1)}%</span>
+      </div>`;
+    el.addEventListener('click',()=>selectCard(id));
+    list.appendChild(el);
+  });
+}
+
+function updateScannerPanel() {
+  const list = document.getElementById('scanner-list');
+  let items = Object.values(cards);
+
+  if (G.scan==='movers') {
+    items.sort((a,b)=>Math.abs((b.price-b.prevPrice)/b.prevPrice)-Math.abs((a.price-a.prevPrice)/a.prevPrice));
+    items = items.slice(0,12);
+  } else if (G.scan==='bubble') {
+    items = items.filter(c=>c.isBubble || c.archetype==='parabolicCrash').sort((a,b)=>b.ap-a.ap).slice(0,12);
+  } else if (G.scan==='misprint') {
+    items = items.filter(c=>c.misprint).sort((a,b)=>(b.misprint?.mult||0)-(a.misprint?.mult||0));
+  } else if (G.scan==='cheap') {
+    items = items.filter(c=>c.price<c.basePrice*1.1).sort((a,b)=>(a.price/a.basePrice)-(b.price/b.basePrice)).slice(0,12);
+  }
+
+  list.innerHTML = items.map(c=>{
+    const pct=((c.price-c.prevPrice)/c.prevPrice)*100;
+    const archPct=Math.round(c.ap*100);
+    return `<div class="scan-row" onclick="selectCard('${c.id}');swTab('portfolio')">
+      <div><div class="scan-name" style="color:${RARITY_COLORS[c.rarity]}">${c.name}${c.misprint?` <span class="mt">${c.misprint.type.code}${c.mpDisc?'!':'?'}</span>`:''}</div>
+        <div class="scan-meta">${c.rarity.toUpperCase()} | Arch: ${archPct}% | ${GRAPH_ARCHETYPE_NAMES[c.archetype]}</div></div>
+      <div class="scan-val" style="color:${pct>=0?'var(--green)':'var(--red)'}">${pct>=0?'+':''}${pct.toFixed(2)}%</div>
+      <div class="scan-val" style="color:var(--text-d)">$${fmtP(c.price)}</div>
+      <div class="scan-val" style="color:${c.isBubble?'var(--red)':'var(--text-d)'}">${c.isBubble?'⚠ BUBBLE':c.archetype==='doubleSpike'&&c.ap>.55?'⚠ TRAP':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateStats() {
+  document.getElementById('st-trades').textContent = G.trades;
+  document.getElementById('st-wr').textContent = G.trades ? ((G.wins/G.trades)*100).toFixed(0)+'%' : '—';
+  document.getElementById('st-best').textContent = '$'+G.bestFlip.toFixed(0);
+  document.getElementById('st-worst').textContent = G.worstFlip < 0 ? '-$'+Math.abs(G.worstFlip).toFixed(0) : '$0';
+}
+
+// ────────────────────────────────────────
+//  RENDER STATIC PANELS
+// ────────────────────────────────────────
+function renderPacks() {
+  const list=document.getElementById('packs-list');
+  list.innerHTML=PACKS.map(p=>`
+    <div class="pack-c" onclick="openPack('${p.id}')">
+      <div class="pn" style="color:${p.color}">${p.name}</div>
+      <div class="pd2">${p.desc}</div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <div class="pp">$${p.cost}</div>
+        <div class="pev">EV ≈ $${p.ev} | ${p.cards} cards</div>
+      </div>
+      <div class="pack-rates">
+        ${Object.entries(p.rates).map(([r,v])=>v>.005?`<span class="pr-tag" style="color:${RARITY_COLORS[r]};border-color:${RARITY_COLORS[r]}40">${r.slice(0,3).toUpperCase()} ${(v*100).toFixed(0)}%</span>`:``).join('')}
+        ${p.mBonus>1?`<span class="pr-tag" style="color:var(--amber);border-color:var(--amber-d)">${p.mBonus}× MISPRINT</span>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function renderSealedBoxes() {
+  const list=document.getElementById('sealed-list');
+  list.innerHTML=`<div style="font-family:var(--fm);font-size:8px;color:var(--text-d);letter-spacing:1px;margin-bottom:6px;padding:4px 0;border-bottom:1px solid var(--border)">SEALED BOX SPECULATION</div>`
+    +SEALED_BOXES.map(sb=>{
+      const trend=sb.currentValue>sb.baseValue;
+      const pct=((sb.currentValue-sb.baseValue)/sb.baseValue*100).toFixed(1);
+      const decay=Math.max(0, 100-(G.tick*sb.decayRate*10));
+      return `<div class="sb-i">
+        <div class="sb-name rc-rare">${sb.name}</div>
+        <div class="sb-meta">${sb.qty} packs sealed | Misprint bonus: ${(sb.misprintBonus*100).toFixed(0)}%</div>
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div class="sb-price">$${fmtBig(sb.currentValue)}</div>
+          <div class="sb-trend" style="color:${trend?'var(--green)':'var(--red)'}">${trend?'+':''}${pct}%</div>
+          ${sb.owned>0?`<div style="font-family:var(--fm);font-size:8px;color:var(--cyan);margin-left:auto">HOLDING: ${sb.owned}</div>`:''}
+        </div>
+        <div class="sb-decay-bar"><div class="sb-decay-fill" style="width:${decay}%"></div></div>
+        <div style="font-family:var(--fm);font-size:7px;color:var(--text-d);margin-top:2px">Freshness: ${decay.toFixed(0)}% | Buy: $${fmtBig(sb.currentValue*.95)}</div>
+        <div class="sb-actions">
+          <button class="btn btn-buy" style="font-size:11px;padding:5px" onclick="buySealedBox('${sb.id}')">BUY</button>
+          ${sb.owned>0?`<button class="btn btn-sell" style="font-size:11px;padding:5px" onclick="sellSealedBox('${sb.id}')">SELL</button>
+          <button class="btn btn-p" style="font-size:11px;padding:5px" onclick="openSealedBox('${sb.id}')">CRACK OPEN</button>`:''}
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function renderTools() {
+  const list=document.getElementById('tools-list');
+  list.innerHTML='<div style="font-family:var(--fm);font-size:8px;color:var(--text-d);letter-spacing:1px;margin-bottom:6px;padding:4px 0;border-bottom:1px solid var(--border)">TRADER TOOLS — unlock by ranking up</div>'
+    +TOOLS.map(t=>{
+      const unlocked=G.rank>=t.rk;
+      return `<div class="tool-i${unlocked?' tool-act':''}">
+        <div class="tool-n">${t.icon} ${t.name} ${unlocked?'✓':'🔒'}</div>
+        <div class="tool-d">${t.desc}</div>
+        <div class="tool-u">${unlocked?`ACTIVE (Rank ${G.rank}: ${RANKS[G.rank].name})`:`Requires Rank ${t.rk}: ${RANKS[t.rk]?.name||'?'}`}</div>
+      </div>`;
+    }).join('');
+}
+
+function renderAchievements() {
+  const list=document.getElementById('ach-list');
+  list.innerHTML=`<div style="font-family:var(--fm);font-size:8px;color:var(--text-d);letter-spacing:1px;margin-bottom:6px;padding:4px 0;border-bottom:1px solid var(--border)">ACHIEVEMENTS — ${G.achDone.size}/${ACHIEVEMENTS.length} completed</div>`
+    +ACHIEVEMENTS.map(a=>{
+      const done=G.achDone.has(a.id);
+      const prog=Math.min(G.achProg[a.id]||0, a.goal);
+      const pct=Math.round((prog/a.goal)*100);
+      return `<div class="ach-i${done?' done':''}">
+        <div class="ach-n" style="${done?'color:var(--amber)':''}">${done?'★ ':''}${a.name}${done?`<span style="margin-left:6px;font-size:8px;font-family:var(--fm);color:var(--text-d)">+${a.xp}XP</span>`:''}</div>
+        <div class="ach-d">${a.desc}</div>
+        ${!done?`<div class="ach-prog"><div class="ach-prog-fill" style="width:${pct}%"></div></div>
+        <div style="font-family:var(--fm);font-size:7px;color:var(--text-d);margin-top:2px">${prog.toFixed(0)}/${a.goal} (${pct}%)</div>`:`<div class="ach-done">COMPLETED</div>`}
+      </div>`;
+    }).join('');
+}
+
+function renderTradeHistory() {
+  const list=document.getElementById('hist-list');
+  if (!tradeHist.length) { list.innerHTML='<div class="emp">No trades yet.</div>'; return; }
+  list.innerHTML=tradeHist.slice(0,50).map(t=>`
+    <div class="th-i th-${t.type}">
+      <div class="th-name" style="color:${RARITY_COLORS[t.rarity]}">${t.name}</div>
+      <div class="th-meta">
+        <span>${t.type.toUpperCase()} ×${t.qty} @ $${fmtP(t.price)}</span>
+        <span class="th-pnl" style="color:${t.profit>=0?'var(--green)':'var(--red)'}">${t.profit>=0?'+':''}$${t.profit.toFixed(2)}</span>
+      </div>
+      <div class="al-time">Tick ${t.tick}</div>
+    </div>`).join('');
+}
+
+// ────────────────────────────────────────
+//  ALERTS & TICKER
+// ────────────────────────────────────────
+function addAlert(msg, type) {
+  const log=document.getElementById('alerts-log');
+  if (log.querySelector('.emp')) log.innerHTML='';
+  const el=document.createElement('div');
+  el.className=`al-i al-${type}`;
+  el.innerHTML=`${msg}<div class="al-time">Tick ${G.tick}</div>`;
+  log.insertBefore(el, log.firstChild);
+  const items=log.querySelectorAll('.al-i');
+  if (items.length>60) items[items.length-1].remove();
+}
+
+function showNotif(title, desc, type='neutral') {
+  const stack = document.getElementById('notif-stack');
+  const el = document.createElement('div');
+  el.className = `notif ${type}`;
+  el.innerHTML = `<div class="n-type">${type==='bull'?'BULLISH':type==='bear'?'BEARISH':type==='special'?'SPECIAL':type.toUpperCase()} EVENT</div><div class="n-title">${title}</div><div class="n-desc">${desc}</div>`;
+  stack.appendChild(el);
+  setTimeout(()=>el.classList.add('show'),50);
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),500);}, 4500);
+  if (stack.children.length > 3) stack.removeChild(stack.firstChild);
+}
+
+function initTicker() {
+  tickerMsgs=[
+    'Welcome to ErrorMint v2 — 40 cards, 10 packs, sealed boxes, grading, and full economy simulation.',
+    'Tip: DOUBLE SPIKE cards look like recovery after first crash — it\'s a TRAP. Second peak is weaker.',
+    'Misprints start undervalued. Wait for Collector Discovery events for maximum multiplier.',
+    'Grade your high-value cards for resale bonuses. PSA 9.5+ gives ×2.0 resale premium.',
+    'Sealed boxes appreciate over time but lose freshness. Time your flip correctly.',
+    'Set price alerts before leaving — the market never sleeps.',
+    'PARABOLIC CRASH archetype: ride the bubble, sell before the crash. Watch the progress timer.',
+    'SLOW CLIMB cards are safe long-term holds. Less excitement, more reliable gains.',
+    'Pack EV is approximate. Variance is high. Chase value in Error Vault Box for misprint hunting.',
+    'Rank up for tools: Volatility Scanner, Advanced Charts, Short Selling, and more.',
+  ];
+  setInterval(rotateTicker, 4000);
+}
+function addTicker(msg) { tickerMsgs.push(msg); if(tickerMsgs.length>30) tickerMsgs.shift(); }
+function rotateTicker() {
+  if (!tickerMsgs.length) return;
+  tickIdx = (tickIdx+1) % tickerMsgs.length;
+  document.getElementById('ticker-txt').textContent = tickerMsgs[tickIdx];
+}
+
+// ────────────────────────────────────────
+//  FILTER / SORT / SCAN / TAB
+// ────────────────────────────────────────
+function setFilter(f) {
+  G.filter=f;
+  document.querySelectorAll('#mkt-filters .fb').forEach(b=>{
+    b.classList.toggle('act', b.getAttribute('onclick').includes(`'${f}'`));
+  });
+  updateMarketList();
+}
+function setSort(s) {
+  G.sort=s;
+  document.querySelectorAll('.sb2').forEach(b=>b.classList.toggle('act',b.getAttribute('onclick').includes(`'${s}'`)));
+  updateMarketList();
+}
+function setScan(s) {
+  G.scan=s;
+  document.querySelectorAll('.scan-sort .sb2').forEach(b=>b.classList.toggle('act',b.getAttribute('onclick').includes(`'${s}'`)));
+  updateScannerPanel();
+}
+function swTab(tab) {
+  document.querySelectorAll('.tb2').forEach(b=>b.classList.toggle('act',b.getAttribute('onclick').includes(`'${tab}'`)));
+  document.querySelectorAll('.tc').forEach(c=>c.classList.remove('act'));
+  document.getElementById(`tc-${tab}`).classList.add('act');
+  if (tab==='alerts') { alertNewCount=0; updateAlertDot(); }
+  if (tab==='history') renderTradeHistory();
+  if (tab==='achievements') renderAchievements();
+  if (tab==='tools') renderTools();
+  if (tab==='sealed') renderSealedBoxes();
+}
+
+// ────────────────────────────────────────
+//  HELPERS
+// ────────────────────────────────────────
+function fmtP(p) {
+  if (p>=10000) return p.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  if (p>=1000) return p.toFixed(0);
+  if (p>=100) return p.toFixed(1);
+  if (p>=10) return p.toFixed(2);
+  return p.toFixed(2);
+}
+function fmtBig(n) {
+  if (n>=1000000) return (n/1000000).toFixed(2)+'M';
+  if (n>=1000) return n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  return n.toFixed(2);
+}
+function getNetWorth() {
+  return G.money + Object.entries(inv).reduce((s,[id,p])=>s+(cards[id]?.price||0)*p.qty,0);
+}
+
+// ────────────────────────────────────────
+//  START
+// ────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
